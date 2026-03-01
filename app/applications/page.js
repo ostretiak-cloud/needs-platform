@@ -1,28 +1,19 @@
 // app/applications/page.js
 import ApplicationsClient from "./ui/ApplicationsClient";
+import { fetchNeeds } from "@/app/lib/needs";
 
 export const dynamic = "force-dynamic";
 
-async function getNeeds() {
-  const url = process.env.SHEETS_API_URL;
-  if (!url) throw new Error("SHEETS_API_URL is missing");
-
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Failed to load needs: ${res.status}`);
-
-  return res.json();
-}
-
 export default async function ApplicationsPage() {
-  const needs = await getNeeds();
+  const needs = await fetchNeeds();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-8">
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="mb-10">
           <h1 className="text-5xl md:text-6xl font-semibold tracking-tight">ЗАЯВКИ</h1>
-          <p className="mt-3 text-white/70">
-            Каталог потреб громад. Фільтруйте за категоріями, громадами та пріоритетом.
+          <p className="mt-4 text-white/70">
+            Каталог потреб громад. Фільтруйте за категоріями, статусами, громадами та пріоритетом.
           </p>
         </div>
 
