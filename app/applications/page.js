@@ -4,7 +4,7 @@ import ApplicationsClient from "./ui/ApplicationsClient";
 export const dynamic = "force-dynamic";
 
 async function getNeeds() {
-  const url = process.env.SHEETS_API_URL; // той самий env що працює для /api/needs
+  const url = process.env.SHEETS_API_URL;
   if (!url) throw new Error("SHEETS_API_URL is missing");
 
   const res = await fetch(url, { cache: "no-store" });

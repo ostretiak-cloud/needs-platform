@@ -3,6 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function uniqSorted(arr) {
   return Array.from(new Set(arr.filter(Boolean))).sort((a, b) =>
@@ -11,9 +12,7 @@ function uniqSorted(arr) {
 }
 
 function normalize(s) {
-  return String(s || "")
-    .toLowerCase()
-    .trim();
+  return String(s || "").toLowerCase().trim();
 }
 
 function formatMoneyUAH(n) {
@@ -26,14 +25,14 @@ export default function ApplicationsClient({ initialNeeds }) {
   const router = useRouter();
   const sp = useSearchParams();
 
-  // URL -> state (щоб лінки з фільтрами працювали)
+  // URL -> state
   const [q, setQ] = useState(sp.get("q") || "");
   const [category, setCategory] = useState(sp.get("category") || "all");
   const [community, setCommunity] = useState(sp.get("community") || "all");
   const [status, setStatus] = useState(sp.get("status") || "all");
   const [priority, setPriority] = useState(sp.get("priority") || "all");
 
-  // Підтягувати зміни якщо юзер вставив url з параметрами
+  // sync state if user opens url with params
   useEffect(() => {
     setQ(sp.get("q") || "");
     setCategory(sp.get("category") || "all");
@@ -74,6 +73,7 @@ export default function ApplicationsClient({ initialNeeds }) {
           normalize(x.community) +
           " " +
           normalize(x.category);
+
         if (!hay.includes(nq)) return false;
       }
 
@@ -105,7 +105,7 @@ export default function ApplicationsClient({ initialNeeds }) {
 
   return (
     <div>
-      {/* Панель фільтрів як на прикладі */}
+      {/* Панель фільтрів */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5 shadow-lg">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <select
@@ -210,18 +210,18 @@ export default function ApplicationsClient({ initialNeeds }) {
             </div>
 
             <div className="mt-4 space-y-2 text-sm text-white/75">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <span className="text-white/50">Громада</span>
                 <span className="text-right">{x.community || "—"}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <span className="text-white/50">Категорія</span>
                 <span className="text-right">{x.category || "—"}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <span className="text-white/50">Бюджет</span>
                 <span className="text-right text-white">
-                  {formatMoneyUAH(x.budget_uah ?? x.budget)}
+                  {formatMoneyUAH(x.budget)}
                 </span>
               </div>
             </div>
@@ -231,13 +231,12 @@ export default function ApplicationsClient({ initialNeeds }) {
                 {x.status ? String(x.status) : ""}
               </span>
 
-              {/* поки без деталізації — зробимо потім /applications/[id] */}
-              <button
+              <Link
+                href={`/applications/${x.id}`}
                 className="rounded-xl bg-emerald-400 hover:bg-emerald-300 transition text-black text-sm font-medium px-4 py-2"
-                onClick={() => alert(`TODO: сторінка детально /applications/${x.id}`)}
               >
                 Відкрити
-              </button>
+              </Link>
             </div>
           </div>
         ))}
