@@ -23,8 +23,8 @@ function formatMoneyUAH(n) {
 }
 
 export default async function ApplicationDetails(props) {
-  // ✅ найнадійніше: дістанемо params з props напряму
-  const params = props?.params || {};
+  // ✅ Next може передавати params як Promise → треба await
+  const params = (await props?.params) || {};
   const wanted = normId(params.id);
 
   const needs = await fetchNeeds();
@@ -52,7 +52,7 @@ export default async function ApplicationDetails(props) {
             <div className="mt-4 text-white/60">Перші 30 ID, які реально прийшли:</div>
             <div className="mt-1 font-mono whitespace-pre-wrap break-words">{ids.join(", ")}</div>
 
-            <div className="mt-4 text-white/60">RAW params:</div>
+            <div className="mt-4 text-white/60">RAW params (після await):</div>
             <div className="mt-1 font-mono whitespace-pre-wrap break-words">
               {JSON.stringify(params)}
             </div>
@@ -123,7 +123,9 @@ export default async function ApplicationDetails(props) {
 
             <div>
               <div className="text-white/50 text-sm">Бюджет</div>
-              <div className="text-2xl font-semibold">{formatMoneyUAH(item.budget_uah ?? item.budget)}</div>
+              <div className="text-2xl font-semibold">
+                {formatMoneyUAH(item.budget_uah ?? item.budget)}
+              </div>
             </div>
 
             <div>
