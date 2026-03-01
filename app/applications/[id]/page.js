@@ -7,9 +7,7 @@ export const dynamic = "force-dynamic";
 function normId(v) {
   return String(v ?? "")
     .trim()
-    // прибираємо різні "дефіси" до звичайного "-"
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
-    // прибираємо зайві пробіли всередині
     .replace(/\s+/g, " ")
     .toUpperCase();
 }
@@ -24,15 +22,15 @@ function formatMoneyUAH(n) {
   return num.toLocaleString("uk-UA") + " грн";
 }
 
-export default async function ApplicationDetails({ params }) {
-  const wanted = normId(params?.id);
+export default async function ApplicationDetails(props) {
+  // ✅ найнадійніше: дістанемо params з props напряму
+  const params = props?.params || {};
+  const wanted = normId(params.id);
 
   const needs = await fetchNeeds();
-
-  // шукаємо максимально надійно
   const item = needs.find((x) => normId(x.id) === wanted);
 
-  // 🔎 ДІАГНОСТИКА замість 404
+  // якщо не знайшло — показуємо діагностику
   if (!item) {
     const ids = needs.map((x) => normId(x.id)).slice(0, 30);
     return (
@@ -46,20 +44,17 @@ export default async function ApplicationDetails({ params }) {
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm">
             <div className="text-white/60">ID у URL (нормалізований):</div>
-            <div className="mt-1 font-mono break-words">{wanted}</div>
+            <div className="mt-1 font-mono break-words">{wanted || "(порожньо)"}</div>
 
             <div className="mt-4 text-white/60">Скільки записів прийшло:</div>
             <div className="mt-1 font-mono">{needs.length}</div>
 
             <div className="mt-4 text-white/60">Перші 30 ID, які реально прийшли:</div>
-            <div className="mt-1 font-mono whitespace-pre-wrap break-words">
-              {ids.join(", ")}
-            </div>
+            <div className="mt-1 font-mono whitespace-pre-wrap break-words">{ids.join(", ")}</div>
 
-            <div className="mt-4 text-white/60">Підказка:</div>
-            <div className="mt-1 text-white/80">
-              Якщо тут немає NEED-0001 — значить Apps Script віддає інші дані (інша таблиця/лист),
-              або `id` у таблиці відрізняється символами дефіса.
+            <div className="mt-4 text-white/60">RAW params:</div>
+            <div className="mt-1 font-mono whitespace-pre-wrap break-words">
+              {JSON.stringify(params)}
             </div>
           </div>
         </div>
@@ -67,7 +62,7 @@ export default async function ApplicationDetails({ params }) {
     );
   }
 
-  // статус перевіряємо теж "мʼяко"
+  // статус
   const st = normStatus(item.status);
   if (st !== "published") {
     return (
@@ -128,9 +123,7 @@ export default async function ApplicationDetails({ params }) {
 
             <div>
               <div className="text-white/50 text-sm">Бюджет</div>
-              <div className="text-2xl font-semibold">
-                {formatMoneyUAH(item.budget_uah ?? item.budget)}
-              </div>
+              <div className="text-2xl font-semibold">{formatMoneyUAH(item.budget_uah ?? item.budget)}</div>
             </div>
 
             <div>
