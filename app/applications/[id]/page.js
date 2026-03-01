@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 // ✅ 1) Тут твій Apps Script endpoint (працює напряму, без env)
 const SHEETS_URL =
-  "https://script.google.com/macros/s/AKfycbxSs19u7mrxv8NrCtnH3axQfkU2j-BYi4JpJsQDtNWR8Gwz8tT6AuvyRFFlvDkULb62TQ/exec";
+  "https://script.google.com/macros/s/AKfycbypMB1wcSzRSzNSxOZN1Pkl4HCgGzLCqh3R6LNAqKgmmiArr-cUABZTvcka5gjhJAejTg/exec";
 
 async function getNeeds() {
   const res = await fetch(SHEETS_URL, { cache: "no-store" });
