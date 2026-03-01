@@ -1,28 +1,9 @@
 // app/applications/[id]/page.js
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { fetchNeeds } from "@/app/lib/needs";
 
 export const dynamic = "force-dynamic";
-
-function getBaseUrl() {
-  // Vercel Production/Preview: VERCEL_URL є типу "needs-platform.vercel.app"
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  // fallback (якщо запускається локально без env)
-  return "https://needs-platform.vercel.app";
-}
-
-async function getNeeds() {
-  const base = getBaseUrl();
-  const res = await fetch(`${base}/api/needs`, { cache: "no-store" });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`Failed to load needs: ${res.status} ${txt}`);
-  }
-
-  const data = await res.json();
-  return Array.isArray(data) ? data : (data?.data ?? []);
-}
 
 function formatMoneyUAH(n) {
   const num = Number(n);
@@ -33,14 +14,10 @@ function formatMoneyUAH(n) {
 export default async function ApplicationDetails({ params }) {
   const id = params?.id;
 
-  const needs = await getNeeds();
-
-  // важливо: id може прийти як "NEED-0001", а в даних бути рядком теж
+  const needs = await fetchNeeds();
   const item = needs.find((x) => String(x.id) === String(id));
 
   if (!item) return notFound();
-
-  // показуємо тільки published
   if (String(item.status).toLowerCase() !== "published") return notFound();
 
   return (
@@ -82,7 +59,7 @@ export default async function ApplicationDetails({ params }) {
             <div>
               <div className="text-white/50 text-sm">Бюджет</div>
               <div className="text-2xl font-semibold">
-                {formatMoneyUAH(item.budget_uah ?? item.budget)}
+                {formatMoneyUAH(item.budget_uah)}
               </div>
             </div>
 
