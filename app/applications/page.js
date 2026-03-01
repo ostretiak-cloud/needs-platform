@@ -1,16 +1,15 @@
 // app/applications/page.js
 import ApplicationsClient from "./ui/ApplicationsClient";
-import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 async function getNeeds() {
-  const h = headers();
-  const host = h.get("host");
-  const proto = process.env.VERCEL ? "https" : "http"; // на Vercel завжди https
+  const url = process.env.SHEETS_API_URL; // той самий env що працює для /api/needs
+  if (!url) throw new Error("SHEETS_API_URL is missing");
 
-  const res = await fetch(`${proto}://${host}/api/needs`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to load needs");
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load needs: ${res.status}`);
+
   return res.json();
 }
 
