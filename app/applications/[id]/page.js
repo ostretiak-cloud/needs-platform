@@ -1,23 +1,24 @@
 // app/applications/[id]/page.js
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-async function getNeeds() {
-  // Працює і на Vercel production, і на preview
-  const base =
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+// ✅ 1) Тут твій Apps Script endpoint (працює напряму, без env)
+const SHEETS_URL =
+  "https://script.google.com/macros/s/AKfycbxSs19u7mrxv8NrCtnH3axQfkU2j-BYi4JpJsQDtNWR8Gwz8tT6AuvyRFFlvDkULb62TQ/exec";
 
-  const res = await fetch(`${base}/api/needs`, { cache: "no-store" });
+async function getNeeds() {
+  const res = await fetch(SHEETS_URL, { cache: "no-store" });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Failed to load needs: ${res.status}. ${text}`);
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Failed to load needs: ${res.status} ${txt}`);
   }
 
   const data = await res.json();
 
-  // На випадок, якщо колись API поверне не масив, а { data: [...] }
+  // Підстраховка: якщо GAS колись поверне {data:[...]}
   if (Array.isArray(data)) return data;
   if (data && Array.isArray(data.data)) return data.data;
 
@@ -32,43 +33,14 @@ function formatMoneyUAH(n) {
 
 export default async function ApplicationDetails({ params }) {
   const id = params?.id;
-  const needs = await getNeeds();
 
-  const ids = needs.map((x) => String(x.id));
+  const needs = await getNeeds();
   const item = needs.find((x) => String(x.id) === String(id));
 
-  // ✅ Замість 404 — показуємо діагностику
-  if (!item) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
-        <div className="mx-auto max-w-3xl px-4 py-12">
-          <Link href="/applications" className="text-sm text-white/60 hover:text-white transition">
-            ← Назад до каталогу
-          </Link>
+  if (!item) return notFound();
 
-          <h1 className="mt-6 text-3xl font-semibold">Не знайдено запис</h1>
-
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm">
-            <div className="text-white/60">Запитаний ID:</div>
-            <div className="mt-1 font-mono">{String(id)}</div>
-
-            <div className="mt-4 text-white/60">Скільки записів прийшло з API:</div>
-            <div className="mt-1 font-mono">{needs.length}</div>
-
-            <div className="mt-4 text-white/60">Перші 20 ID з API:</div>
-            <div className="mt-1 font-mono whitespace-pre-wrap break-words">
-              {ids.slice(0, 20).join(", ")}
-            </div>
-
-            <div className="mt-4 text-white/60">Підказка:</div>
-            <div className="mt-1 text-white/80">
-              Якщо тут немає NEED-0001 — значить /api/needs повертає інші дані або інший аркуш/таблицю.
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  // ✅ Публічно не показуємо draft
+  if (String(item.status).toLowerCase() !== "published") return notFound();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
