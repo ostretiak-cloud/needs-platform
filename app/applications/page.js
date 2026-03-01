@@ -1,15 +1,15 @@
 // app/applications/page.js
 import ApplicationsClient from "./ui/ApplicationsClient";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 async function getNeeds() {
-  const base = process.env.NEXT_PUBLIC_BASE_URL
-    ? process.env.NEXT_PUBLIC_BASE_URL
-    : ""; // можна лишити пустим на Vercel
+  const h = headers();
+  const host = h.get("host");
+  const proto = process.env.VERCEL ? "https" : "http"; // на Vercel завжди https
 
-  // На Vercel краще використовувати відносний шлях
-  const res = await fetch(`${base}/api/needs`, { cache: "no-store" });
+  const res = await fetch(`${proto}://${host}/api/needs`, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load needs");
   return res.json();
 }
