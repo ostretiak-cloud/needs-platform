@@ -1,9 +1,22 @@
 // app/applications/[id]/page.js
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { fetchNeeds } from "@/app/lib/needs";
 
 export const dynamic = "force-dynamic";
+
+function normId(v) {
+  return String(v ?? "")
+    .trim()
+    // прибираємо різні "дефіси" до звичайного "-"
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
+    // прибираємо зайві пробіли всередині
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+}
+
+function normStatus(v) {
+  return String(v ?? "").trim().toLowerCase();
+}
 
 function formatMoneyUAH(n) {
   const num = Number(n);
@@ -12,13 +25,70 @@ function formatMoneyUAH(n) {
 }
 
 export default async function ApplicationDetails({ params }) {
-  const id = params?.id;
+  const wanted = normId(params?.id);
 
   const needs = await fetchNeeds();
-  const item = needs.find((x) => String(x.id) === String(id));
 
-  if (!item) return notFound();
-  if (String(item.status).toLowerCase() !== "published") return notFound();
+  // шукаємо максимально надійно
+  const item = needs.find((x) => normId(x.id) === wanted);
+
+  // 🔎 ДІАГНОСТИКА замість 404
+  if (!item) {
+    const ids = needs.map((x) => normId(x.id)).slice(0, 30);
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
+        <div className="mx-auto max-w-4xl px-4 py-12">
+          <Link href="/applications" className="text-sm text-white/60 hover:text-white transition">
+            ← Назад до каталогу
+          </Link>
+
+          <h1 className="mt-6 text-3xl font-semibold">Не знайшов запис за ID</h1>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm">
+            <div className="text-white/60">ID у URL (нормалізований):</div>
+            <div className="mt-1 font-mono break-words">{wanted}</div>
+
+            <div className="mt-4 text-white/60">Скільки записів прийшло:</div>
+            <div className="mt-1 font-mono">{needs.length}</div>
+
+            <div className="mt-4 text-white/60">Перші 30 ID, які реально прийшли:</div>
+            <div className="mt-1 font-mono whitespace-pre-wrap break-words">
+              {ids.join(", ")}
+            </div>
+
+            <div className="mt-4 text-white/60">Підказка:</div>
+            <div className="mt-1 text-white/80">
+              Якщо тут немає NEED-0001 — значить Apps Script віддає інші дані (інша таблиця/лист),
+              або `id` у таблиці відрізняється символами дефіса.
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // статус перевіряємо теж "мʼяко"
+  const st = normStatus(item.status);
+  if (st !== "published") {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
+        <div className="mx-auto max-w-4xl px-4 py-12">
+          <Link href="/applications" className="text-sm text-white/60 hover:text-white transition">
+            ← Назад до каталогу
+          </Link>
+
+          <h1 className="mt-6 text-3xl font-semibold">Запис не опублікований</h1>
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm">
+            <div className="text-white/60">ID:</div>
+            <div className="mt-1 font-mono">{item.id}</div>
+
+            <div className="mt-4 text-white/60">Статус:</div>
+            <div className="mt-1 font-mono">{String(item.status)}</div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
@@ -59,7 +129,7 @@ export default async function ApplicationDetails({ params }) {
             <div>
               <div className="text-white/50 text-sm">Бюджет</div>
               <div className="text-2xl font-semibold">
-                {formatMoneyUAH(item.budget_uah)}
+                {formatMoneyUAH(item.budget_uah ?? item.budget)}
               </div>
             </div>
 
