@@ -24,24 +24,6 @@ function TridentMark({ className = "" }) {
   );
 }
 
-function IconSearch({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M16.5 16.5 21 21"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function IconContrast({ className = "" }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -84,25 +66,6 @@ function NavLink({ href, children }) {
         active ? "bg-white/10 text-white" : "text-white/75 hover:bg-white/10 hover:text-white",
         "focus:outline-none focus:ring-2 focus:ring-white/25",
       ].join(" ")}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function RoundIconLink({ title, href, children }) {
-  return (
-    <Link
-      href={href}
-      prefetch
-      className={[
-        "inline-flex h-11 w-11 items-center justify-center rounded-full transition",
-        "bg-white/[0.07] text-white/90 hover:bg-white/[0.11] hover:text-white",
-        "ring-1 ring-white/10",
-        "focus:outline-none focus:ring-2 focus:ring-white/25",
-      ].join(" ")}
-      title={title}
-      aria-label={title}
     >
       {children}
     </Link>
@@ -166,30 +129,30 @@ export default function Header() {
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
             {/* Left */}
-            <Link href="/" prefetch className="flex items-center gap-3">
+            <Link href="/" prefetch className="flex items-center gap-3 min-w-0">
               <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.08] ring-1 ring-white/10 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.9)]">
                 <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/12 to-transparent" />
                 <span className="relative text-white">
+                  {/* Герб України */}
                   <TridentMark className="h-6 w-6 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)]" />
                 </span>
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-white/[0.08] px-3 py-1 text-xs font-semibold text-white/85 ring-1 ring-white/10">
-                Beta
+              {/* Замість Beta: назва установи */}
+              <span className="truncate text-[13px] font-semibold text-white/90 sm:text-sm">
+                Харківська обласна військова адміністрація
               </span>
             </Link>
 
             {/* Center nav */}
             <nav className="hidden items-center justify-center gap-1 md:flex">
-              <NavLink href="/about">Про нас</NavLink>
+              <NavLink href="/about">Про проєкт</NavLink>
               <NavLink href="/applications">Каталог заявок</NavLink>
             </nav>
 
             {/* Right */}
             <div className="flex items-center gap-2">
-              <RoundIconLink title="Пошук" href="/applications">
-                <IconSearch className="h-5 w-5" />
-              </RoundIconLink>
+              {/* Пошук прибрано */}
 
               <RoundIconButton title="Контраст">
                 <IconContrast className="h-5 w-5" />
@@ -217,7 +180,7 @@ export default function Header() {
           {/* Mobile nav */}
           <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
             <div className="flex gap-2">
-              <NavLink href="/about">Про нас</NavLink>
+              <NavLink href="/about">Про проєкт</NavLink>
               <NavLink href="/applications">Каталог</NavLink>
             </div>
           </div>
