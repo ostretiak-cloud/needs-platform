@@ -128,7 +128,7 @@ function RoundIconButton({ title, children }) {
 export default function Header() {
   return (
     <header className="sticky top-0 z-50">
-      <div className="border-b border-white/10 bg-black/70 backdrop-blur">
+      <div className="border-b border-white/10 bg-neutral-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-neutral-950/60">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           {/* Лого як у Мінцифри: знак у квадратику + Beta */}
           <Link href="/" prefetch className="flex items-center gap-3">
