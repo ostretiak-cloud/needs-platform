@@ -71,23 +71,38 @@ function RoundIconButton({ title, children }) {
 
 export default function Header() {
   const noiseBg =
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.20'/%3E%3C/svg%3E\")";
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E\")";
 
   return (
     <header className="sticky top-0 z-50">
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0F] to-[#121218]" />
-        <div className="absolute inset-0 bg-white/[0.07] backdrop-blur-3xl" />
+        {/* ✅ NEW: navy -> deep green gradient (як на твоєму скріні) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#071427] via-[#071A22] to-[#071E12]" />
+
+        {/* додатковий “внутрішній” радіальний тон зверху (наві) */}
+        <div className="absolute inset-0 bg-[radial-gradient(1100px_320px_at_50%_-120px,rgba(40,90,255,0.18),transparent_60%)]" />
+
+        {/* додатковий “внутрішній” радіальний тон знизу (зелений) */}
+        <div className="absolute inset-0 bg-[radial-gradient(900px_360px_at_55%_140%,rgba(0,170,90,0.16),transparent_55%)]" />
+
+        {/* glass layers */}
+        <div className="absolute inset-0 bg-white/[0.06] backdrop-blur-3xl" />
         <div className="absolute inset-0 bg-black/25" />
 
+        {/* noise */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
+          className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
           style={{ backgroundImage: noiseBg }}
         />
 
+        {/* subtle top highlight */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/10" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent via-black/10 to-black/25" />
-        <div className="pointer-events-none absolute -bottom-6 inset-x-0 h-8 bg-gradient-to-b from-black/35 to-transparent blur-md opacity-70" />
+
+        {/* soft bottom fade (no hard line) */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent via-black/10 to-black/30" />
+
+        {/* soft shadow down */}
+        <div className="pointer-events-none absolute -bottom-6 inset-x-0 h-10 bg-gradient-to-b from-black/35 to-transparent blur-md opacity-70" />
 
         <div
           className={[
@@ -102,12 +117,12 @@ export default function Header() {
               <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.08] ring-1 ring-white/10 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.9)]">
                 <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/12 to-transparent" />
 
-                {/* Герб: через mask -> завжди масштабується правильно + білий */}
+                {/* Герб: mask (працює з твоїм “обрізаним” coat.svg) */}
                 <span
                   aria-hidden="true"
                   className="relative h-7 w-7"
                   style={{
-                    backgroundColor: "rgba(255,255,255,0.95)",
+                    backgroundColor: "rgba(255,255,255,0.96)",
                     WebkitMaskImage: "url(/coat.svg)",
                     WebkitMaskRepeat: "no-repeat",
                     WebkitMaskPosition: "center",
@@ -122,7 +137,7 @@ export default function Header() {
                 <span className="sr-only">Герб України</span>
               </div>
 
-              {/* Назва: явно біла і читабельна */}
+              {/* Title */}
               <div className="leading-tight">
                 <div className="text-[16px] font-semibold text-white sm:text-[17px]">
                   Харківська обласна
