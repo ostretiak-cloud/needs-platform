@@ -3,22 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-function TridentMark({ className = "" }) {
+function UkraineTrident({ className = "" }) {
+  // Stylized Tryzub (recognizable silhouette) — currentColor
   return (
     <svg
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 64 64"
       role="img"
-      aria-label="Україна"
+      aria-label="Герб України"
     >
       <path
         fill="currentColor"
-        d="M32 6c7.6 6.3 15.5 8.8 24 9.8v12.8c0 16.8-10.2 27.9-24 32.4C18.2 56.5 8 45.4 8 28.6V15.8C16.5 14.8 24.4 12.3 32 6Zm0 7.2C25.8 17.4 19 19.4 12 20.4v8.2c0 13.5 8 22.5 20 26.2 12-3.7 20-12.7 20-26.2v-8.2c-7-1-13.8-3-20-7.2Z"
-      />
-      <path
-        fill="currentColor"
-        d="M32 20c3 2.9 5.8 4.1 9 4.9v4.7c0 6.8-4.1 11.4-9 13-4.9-1.6-9-6.2-9-13v-4.7c3.2-.8 6-2 9-4.9Zm0 5.6c-1.6 1.1-3.1 1.8-5 2.2v1.8c0 4.6 2.4 7.6 5 8.8 2.6-1.2 5-4.2 5-8.8v-1.8c-1.9-.4-3.4-1.1-5-2.2Z"
+        d="M32 6c2.9 4.4 7.3 7.2 12.2 9.6v6.9c0 2.6-.6 5.1-1.9 7.3 2.9 1.8 4.7 4.9 4.7 8.4 0 2.9-1.1 5.6-3.1 7.6-2.1 2.1-5.1 3.4-8.5 3.4-2.6 0-4.9-.7-6.7-2-.5.4-1 .8-1.6 1.2l-1.6-2.2c1.9-1.3 3.2-2.6 4-3.9.7-1.1 1-2.3 1-3.8V12.7c-.9-.8-1.8-1.7-2.6-2.7-3 3.7-7.3 6.5-12.1 8.9v17.7c0 1.5.3 2.8 1 3.9.8 1.3 2.1 2.6 4 3.9l-1.6 2.2c-.6-.4-1.1-.8-1.6-1.2-1.9 1.3-4.2 2-6.7 2-3.4 0-6.4-1.3-8.5-3.4-2-2-3.1-4.7-3.1-7.6 0-3.5 1.8-6.6 4.7-8.4-1.3-2.2-1.9-4.7-1.9-7.3v-6.9C24.7 13.2 29.1 10.4 32 6Zm-6.8 26.6c-1.5 1.7-3.8 2.8-6.3 2.8-1.9 0-3.6-.6-4.9-1.6-1.6 1-2.6 2.8-2.6 4.8 0 1.5.6 2.9 1.7 4 1.2 1.2 2.9 2 4.9 2 1.7 0 3.2-.5 4.3-1.3-.4-.9-.7-1.8-.9-2.8-.6-3.2.5-7 3.8-9.9Zm13.6 0c3.3 2.9 4.4 6.7 3.8 9.9-.2 1-.5 1.9-.9 2.8 1.1.8 2.6 1.3 4.3 1.3 2 0 3.7-.8 4.9-2 1.1-1.1 1.7-2.5 1.7-4 0-2-1-3.8-2.6-4.8-1.3 1-3 1.6-4.9 1.6-2.5 0-4.8-1.1-6.3-2.8ZM32 26.3c-2.4 2.5-4.9 3.7-7.8 4.2v6.2c0 2.9 1 5.4 3 7.3 1.3 1.3 2.9 2.2 4.8 2.8 1.9-.6 3.5-1.5 4.8-2.8 2-1.9 3-4.4 3-7.3v-6.2c-2.9-.5-5.4-1.7-7.8-4.2Z"
+        opacity="0.95"
       />
     </svg>
   );
@@ -96,35 +94,29 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* Без border-b: лінію прибрали. Робимо м’який “преміальний” край через тінь. */}
       <div className="relative">
         {/* base graphite gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0F] to-[#121218]" />
-
-        {/* glass layers: більш “молочний” blur як у Мінцифри */}
+        {/* glass layers */}
         <div className="absolute inset-0 bg-white/[0.07] backdrop-blur-3xl" />
         <div className="absolute inset-0 bg-black/25" />
-
         {/* noise */}
         <div
           className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
           style={{ backgroundImage: noiseBg }}
         />
-
         {/* subtle top highlight */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/10" />
-
-        {/* замість “білої полоски” внизу: дуже м’який внутрішній fade */}
+        {/* soft bottom fade */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent via-black/10 to-black/25" />
-
-        {/* м’яка тінь вниз, щоб край не був жорсткий */}
+        {/* soft shadow down */}
         <div className="pointer-events-none absolute -bottom-6 inset-x-0 h-8 bg-gradient-to-b from-black/35 to-transparent blur-md opacity-70" />
 
         <div
           className={[
             "relative",
             "shadow-[0_20px_60px_-40px_rgba(0,0,0,0.95)]",
-            "outline outline-1 outline-white/5", // дуже делікатна рамка замість бордера
+            "outline outline-1 outline-white/5",
           ].join(" ")}
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
@@ -133,14 +125,19 @@ export default function Header() {
               <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.08] ring-1 ring-white/10 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.9)]">
                 <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/12 to-transparent" />
                 <span className="relative text-white">
-                  {/* Герб України */}
-                  <TridentMark className="h-6 w-6 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)]" />
+                  {/* Герб України (Тризуб) */}
+                  <UkraineTrident className="h-7 w-7 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)]" />
                 </span>
               </div>
 
-              {/* Замість Beta: назва установи */}
-              <span className="truncate text-[13px] font-semibold text-white/90 sm:text-sm">
-                Харківська обласна військова адміністрація
+              {/* Назва більшою + у 2 строки */}
+              <span className="text-white/92 leading-tight">
+                <span className="block text-[15px] font-semibold sm:text-[16px]">
+                  Харківська обласна
+                </span>
+                <span className="block text-[15px] font-semibold sm:text-[16px]">
+                  військова адміністрація
+                </span>
               </span>
             </Link>
 
@@ -152,8 +149,6 @@ export default function Header() {
 
             {/* Right */}
             <div className="flex items-center gap-2">
-              {/* Пошук прибрано */}
-
               <RoundIconButton title="Контраст">
                 <IconContrast className="h-5 w-5" />
               </RoundIconButton>
