@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 function TridentMark({ className = "" }) {
+  // мінімалістичний знак (білий) — як у Мінцифри
   return (
     <svg
       className={className}
@@ -42,7 +43,35 @@ function IconSearch({ className = "" }) {
   );
 }
 
-function IconContrast({ className = "" }) {
+function IconMenu({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4 12h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconCalendar({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 3v3M17 3v3M4.5 8.5h15"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6 6h12a2 2 0 0 1 2 2v11a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function IconClock({ className = "" }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
@@ -50,136 +79,150 @@ function IconContrast({ className = "" }) {
         stroke="currentColor"
         strokeWidth="2"
       />
-      <path d="M12 3v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconAccessibility({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" fill="currentColor" />
       <path
-        d="M4 8.5c2.6 1.3 5.3 2 8 2s5.4-.7 8-2"
+        d="M12 7v6l4 2"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
       />
-      <path d="M10 22l2-8 2 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M12 14V10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
 
-function NavLink({ href, children }) {
-  const pathname = usePathname();
-  const active = pathname === href || (href !== "/" && pathname?.startsWith(href));
-
-  return (
-    <Link
-      href={href}
-      prefetch
-      className={[
-        "inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-semibold transition",
-        active ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10 hover:text-white",
-        "focus:outline-none focus:ring-2 focus:ring-white/30",
-      ].join(" ")}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function RoundIconLink({ title, href, children }) {
-  return (
-    <Link
-      href={href}
-      prefetch
-      className={[
-        "inline-flex h-11 w-11 items-center justify-center rounded-full transition",
-        "bg-white/10 text-white/90 hover:bg-white/15 hover:text-white",
-        "focus:outline-none focus:ring-2 focus:ring-white/30",
-      ].join(" ")}
-      title={title}
-      aria-label={title}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function RoundIconButton({ title, children }) {
-  return (
-    <button
-      type="button"
-      className={[
-        "inline-flex h-11 w-11 items-center justify-center rounded-full transition",
-        "bg-white/10 text-white/90 hover:bg-white/15 hover:text-white",
-        "focus:outline-none focus:ring-2 focus:ring-white/30",
-      ].join(" ")}
-      title={title}
-      aria-label={title}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function Header() {
+  const [open, setOpen] = useState(false);
+
+  // легка “noise” текстура — data-uri (без додаткових файлів)
+  const noiseBg =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E\")";
+
   return (
     <header className="sticky top-0 z-50">
-      {/* ОДИНАКОВИЙ “СКЛЯНИЙ” СТАН ЗАВЖДИ — і зверху, і при скролі */}
-      <div className="border-b border-white/10 bg-neutral-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-neutral-950/60">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" prefetch className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
-              <span className="text-white">
-                <TridentMark className="h-6 w-6" />
+      <div className="relative">
+        {/* ФОН: глибокий графітовий градієнт */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0F] to-[#121218]" />
+
+        {/* GLASS: дві “плівки” + сильний blur (як у Мінцифри) */}
+        <div className="absolute inset-0 bg-white/[0.06] backdrop-blur-2xl" />
+        <div className="absolute inset-0 bg-black/20" />
+
+        {/* NOISE: делікатна текстура */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
+          style={{ backgroundImage: noiseBg }}
+        />
+
+        {/* м’яка нижня тінь замість різкої межі */}
+        <div className="pointer-events-none absolute -bottom-4 left-0 right-0 h-6 bg-gradient-to-b from-black/35 to-transparent" />
+
+        <div className="relative mx-auto max-w-6xl px-4 py-4">
+          {/* Верхній ряд */}
+          <div className="flex items-start justify-between gap-4">
+            {/* Ліво: лого + Beta */}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                prefetch
+                className="group flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.08] ring-1 ring-white/10 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.9)]"
+                aria-label="На головну"
+              >
+                {/* глянець */}
+                <div className="absolute h-12 w-12 rounded-2xl bg-gradient-to-b from-white/10 to-transparent opacity-80" />
+                <span className="relative text-white">
+                  <TridentMark className="h-6 w-6 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)]" />
+                </span>
+              </Link>
+
+              <span className="inline-flex items-center rounded-full bg-white/[0.08] px-3 py-1 text-xs font-semibold text-white/85 ring-1 ring-white/10">
+                Beta
               </span>
             </div>
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 ring-1 ring-white/10">
-              Beta
-            </span>
-          </Link>
 
-          <nav className="hidden items-center justify-center gap-1 md:flex">
-            <NavLink href="/about">Про нас</NavLink>
-            <NavLink href="/applications">Каталог заявок</NavLink>
-          </nav>
+            {/* Центр: заголовок + мета */}
+            <div className="flex-1 text-center">
+              <div className="text-[18px] font-extrabold tracking-tight text-white md:text-[20px]">
+                єПотреба
+              </div>
 
-          <div className="flex items-center gap-2">
-            <RoundIconLink title="Пошук" href="/applications">
-              <IconSearch className="h-5 w-5" />
-            </RoundIconLink>
+              <div className="mt-1 flex items-center justify-center gap-3 text-xs text-white/60">
+                <span className="inline-flex items-center gap-1.5">
+                  <IconCalendar className="h-4 w-4 opacity-70" />
+                  Оновлюється з Google Sheets
+                </span>
+                <span className="h-3 w-px bg-white/15" />
+                <span className="inline-flex items-center gap-1.5">
+                  <IconClock className="h-4 w-4 opacity-70" />1 хв
+                </span>
+              </div>
+            </div>
 
-            <RoundIconButton title="Контраст">
-              <IconContrast className="h-5 w-5" />
-            </RoundIconButton>
+            {/* Право: pill пошук + hamburger */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/applications"
+                prefetch
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-white/[0.08] px-4 text-sm font-semibold text-white/90 ring-1 ring-white/10 transition hover:bg-white/[0.12]"
+                aria-label="Пошук у каталозі"
+              >
+                <IconSearch className="h-5 w-5" />
+                <span className="hidden sm:inline">Пошук</span>
+              </Link>
 
-            <RoundIconButton title="Доступність">
-              <IconAccessibility className="h-5 w-5" />
-            </RoundIconButton>
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.08] text-white/90 ring-1 ring-white/10 transition hover:bg-white/[0.12]"
+                aria-label="Меню"
+              >
+                <IconMenu className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
 
+          {/* Нижній ряд: кнопка як у промті */}
+          <div className="mt-4 flex justify-center md:justify-end">
             <Link
-              href="/admin"
+              href="/applications"
               prefetch
-              className={[
-                "ml-1 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-extrabold transition",
-                "bg-[#FFD500] text-black hover:bg-[#FFE166]",
-                "shadow-[0_16px_40px_-24px_rgba(255,213,0,0.9)]",
-                "focus:outline-none focus:ring-2 focus:ring-[#FFD500]/40",
-              ].join(" ")}
+              className="inline-flex h-11 items-center justify-center rounded-full bg-white/[0.06] px-5 text-sm font-semibold text-white/85 ring-1 ring-white/10 transition hover:bg-white/[0.10] hover:text-white"
             >
-              Вхід
+              До всіх оновлень
             </Link>
           </div>
-        </div>
 
-        <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
-          <div className="flex gap-2">
-            <NavLink href="/about">Про нас</NavLink>
-            <NavLink href="/applications">Каталог</NavLink>
-          </div>
+          {/* Випадаюче меню (з hamburger) */}
+          {open && (
+            <div className="mt-4 rounded-3xl bg-white/[0.06] p-3 ring-1 ring-white/10 backdrop-blur-2xl">
+              <div className="grid gap-2 md:grid-cols-3">
+                <Link
+                  href="/applications"
+                  prefetch
+                  className="rounded-2xl bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/90 ring-1 ring-white/10 hover:bg-white/[0.10]"
+                  onClick={() => setOpen(false)}
+                >
+                  Каталог заявок
+                </Link>
+
+                <Link
+                  href="/about"
+                  prefetch
+                  className="rounded-2xl bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/90 ring-1 ring-white/10 hover:bg-white/[0.10]"
+                  onClick={() => setOpen(false)}
+                >
+                  Про проєкт
+                </Link>
+
+                <Link
+                  href="/admin"
+                  prefetch
+                  className="rounded-2xl bg-[#FFD500] px-4 py-3 text-sm font-extrabold text-black hover:bg-[#FFE166]"
+                  onClick={() => setOpen(false)}
+                >
+                  Вхід
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
