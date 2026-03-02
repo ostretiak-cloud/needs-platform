@@ -128,9 +128,9 @@ function RoundIconButton({ title, children }) {
 export default function Header() {
   return (
     <header className="sticky top-0 z-50">
+      {/* ОДИНАКОВИЙ “СКЛЯНИЙ” СТАН ЗАВЖДИ — і зверху, і при скролі */}
       <div className="border-b border-white/10 bg-neutral-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-neutral-950/60">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          {/* Лого як у Мінцифри: знак у квадратику + Beta */}
           <Link href="/" prefetch className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
               <span className="text-white">
@@ -142,13 +142,11 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Меню по центру (pill-стиль) */}
           <nav className="hidden items-center justify-center gap-1 md:flex">
             <NavLink href="/about">Про нас</NavLink>
             <NavLink href="/applications">Каталог заявок</NavLink>
           </nav>
 
-          {/* Праворуч: іконки + CTA */}
           <div className="flex items-center gap-2">
             <RoundIconLink title="Пошук" href="/applications">
               <IconSearch className="h-5 w-5" />
@@ -177,7 +175,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile меню */}
         <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
           <div className="flex gap-2">
             <NavLink href="/about">Про нас</NavLink>
