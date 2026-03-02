@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 function TridentMark({ className = "" }) {
-  // Мінімалістична "марка" (темна як у Мінцифри). Колір = currentColor.
   return (
     <svg
       className={className}
@@ -51,12 +50,7 @@ function IconContrast({ className = "" }) {
         stroke="currentColor"
         strokeWidth="2"
       />
-      <path
-        d="M12 3v18"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M12 3v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -64,28 +58,15 @@ function IconContrast({ className = "" }) {
 function IconAccessibility({ className = "" }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
-        fill="currentColor"
-      />
+      <path d="M12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" fill="currentColor" />
       <path
         d="M4 8.5c2.6 1.3 5.3 2 8 2s5.4-.7 8-2"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
       />
-      <path
-        d="M10 22l2-8 2 8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 14V10.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M10 22l2-8 2 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 14V10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -100,9 +81,7 @@ function NavLink({ href, children }) {
       prefetch
       className={[
         "inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-semibold transition",
-        active
-          ? "bg-white/10 text-white"
-          : "text-white/80 hover:bg-white/10 hover:text-white",
+        active ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10 hover:text-white",
         "focus:outline-none focus:ring-2 focus:ring-white/30",
       ].join(" ")}
     >
@@ -111,37 +90,47 @@ function NavLink({ href, children }) {
   );
 }
 
-function RoundIconButton({ title, href, children }) {
-  const common =
-    "inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/90 " +
-    "hover:bg-white/15 hover:text-white transition " +
-    "focus:outline-none focus:ring-2 focus:ring-white/30";
-
-  if (href) {
-    return (
-      <Link href={href} prefetch className={common} title={title} aria-label={title}>
-        {children}
-      </Link>
-    );
-  }
-
+function RoundIconLink({ title, href, children }) {
   return (
-    <button type="button" className={common} title={title} aria-label={title}>
+    <Link
+      href={href}
+      prefetch
+      className={[
+        "inline-flex h-11 w-11 items-center justify-center rounded-full transition",
+        "bg-white/10 text-white/90 hover:bg-white/15 hover:text-white",
+        "focus:outline-none focus:ring-2 focus:ring-white/30",
+      ].join(" ")}
+      title={title}
+      aria-label={title}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function RoundIconButton({ title, children }) {
+  return (
+    <button
+      type="button"
+      className={[
+        "inline-flex h-11 w-11 items-center justify-center rounded-full transition",
+        "bg-white/10 text-white/90 hover:bg-white/15 hover:text-white",
+        "focus:outline-none focus:ring-2 focus:ring-white/30",
+      ].join(" ")}
+      title={title}
+      aria-label={title}
+    >
       {children}
     </button>
   );
 }
 
 export default function Header() {
-  const searchParams = useSearchParams();
-  const q = searchParams?.get("q") || "";
-
   return (
     <header className="sticky top-0 z-50">
-      {/* Темний "мінцифровий" фон + легкий blur */}
       <div className="border-b border-white/10 bg-black/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          {/* ЛОГО (як у Мінцифри: знак у квадраті + Beta поряд) */}
+          {/* Лого як у Мінцифри: знак у квадратику + Beta */}
           <Link href="/" prefetch className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
               <span className="text-white">
@@ -153,21 +142,17 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* МЕНЮ (центр, у вигляді "пілл" як на thedigital.gov.ua) */}
+          {/* Меню по центру (pill-стиль) */}
           <nav className="hidden items-center justify-center gap-1 md:flex">
-            <NavLink href="/about">Про проєкт</NavLink>
+            <NavLink href="/about">Про нас</NavLink>
             <NavLink href="/applications">Каталог заявок</NavLink>
           </nav>
 
-          {/* ПРАВОРУЧ: пошук + “контраст” + “доступність” + CTA */}
+          {/* Праворуч: іконки + CTA */}
           <div className="flex items-center gap-2">
-            {/* Пошук веде в каталог, зберігає q якщо є */}
-            <RoundIconButton
-              title="Пошук"
-              href={q ? `/applications?q=${encodeURIComponent(q)}` : "/applications"}
-            >
+            <RoundIconLink title="Пошук" href="/applications">
               <IconSearch className="h-5 w-5" />
-            </RoundIconButton>
+            </RoundIconLink>
 
             <RoundIconButton title="Контраст">
               <IconContrast className="h-5 w-5" />
@@ -192,10 +177,10 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile меню (компактно, як “пілл-ряд”) */}
+        {/* Mobile меню */}
         <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
           <div className="flex gap-2">
-            <NavLink href="/about">Про проєкт</NavLink>
+            <NavLink href="/about">Про нас</NavLink>
             <NavLink href="/applications">Каталог</NavLink>
           </div>
         </div>
