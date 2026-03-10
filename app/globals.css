@@ -45,17 +45,40 @@ html.a11y-high-contrast body {
   filter: contrast(1.25) saturate(1.15);
 }
 
-html.a11y-larger-text {
+html[data-a11y-text-scale="1"] {
+  font-size: 106.25%;
+}
+
+html[data-a11y-text-scale="2"] {
   font-size: 112.5%;
 }
 
-html.a11y-reduce-motion *,
-html.a11y-reduce-motion *::before,
-html.a11y-reduce-motion *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-  scroll-behavior: auto !important;
+html[data-a11y-text-scale="3"] {
+  font-size: 118.75%;
+}
+
+html.a11y-invert-colors body {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html.a11y-high-brightness body {
+  filter: brightness(1.15);
+}
+
+html.a11y-high-contrast.a11y-invert-colors body {
+  filter: invert(1) hue-rotate(180deg) contrast(1.25) saturate(1.15);
+}
+
+html.a11y-high-contrast.a11y-high-brightness body {
+  filter: contrast(1.25) saturate(1.15) brightness(1.15);
+}
+
+html.a11y-invert-colors.a11y-high-brightness body {
+  filter: invert(1) hue-rotate(180deg) brightness(1.15);
+}
+
+html.a11y-high-contrast.a11y-invert-colors.a11y-high-brightness body {
+  filter: invert(1) hue-rotate(180deg) contrast(1.25) saturate(1.15) brightness(1.15);
 }
 
 html.a11y-underline-links a {
