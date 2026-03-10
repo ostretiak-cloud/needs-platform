@@ -129,6 +129,7 @@ function A11yTextScale({ value, onChange }) {
 
 export default function Header() {
   const [isA11yMenuOpen, setA11yMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [a11ySettings, setA11ySettings] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
 
@@ -152,6 +153,18 @@ export default function Header() {
       window.localStorage.setItem(A11Y_STORAGE_KEY, JSON.stringify(a11ySettings));
     }
   }, [a11ySettings]);
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 8);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -195,6 +208,14 @@ export default function Header() {
 
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/10" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent via-black/10 to-black/30" />
+        <div
+          className={[
+            "pointer-events-none absolute inset-x-0 bottom-0 h-16",
+            "bg-gradient-to-b from-transparent via-black/10 to-black/40",
+            "backdrop-blur-md transition-opacity duration-300",
+            isScrolled ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+        />
         <div className="pointer-events-none absolute -bottom-6 inset-x-0 h-10 bg-gradient-to-b from-black/35 to-transparent blur-md opacity-70" />
 
         <div
