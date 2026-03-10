@@ -112,46 +112,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="py-16">
-          <h2 className="text-2xl font-bold md:text-3xl">Архітектура платформи</h2>
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
-            <div className="grid gap-3 text-sm font-medium text-white/85 md:grid-cols-7 md:items-center md:text-base">
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center">
-                Громади
-              </div>
-              <div className="hidden text-center text-cyan-300 md:block">→</div>
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center">
-                Платформа
-              </div>
-              <div className="hidden text-center text-cyan-300 md:block">→</div>
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center">
-                Каталог
-              </div>
-              <div className="hidden text-center text-cyan-300 md:block">→</div>
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center">
-                Партнери
-              </div>
-            </div>
-            <p className="mt-6 text-white/75">
-              Громади подають заявки → система формує каталог → партнери
-              знаходять потреби для підтримки.
-            </p>
-          </div>
-        </section>
-
-        <section className="pb-8 pt-16">
-          <article className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-white/5 to-transparent p-6 md:p-8">
-            <h2 className="text-2xl font-bold md:text-3xl">
-              Цифрова інфраструктура для підтримки громад
-            </h2>
-            <p className="mt-4 max-w-4xl text-white/75">
-              Платформа «єПотреба» створюється як інструмент цифрової
-              трансформації регіону, який дозволяє системно працювати з
-              потребами територіальних громад та формувати прозорий каталог
-              запитів.
-            </p>
-          </article>
-        </section>
       </div>
     </main>
   );
