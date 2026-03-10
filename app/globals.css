@@ -37,3 +37,29 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+/* ============================= */
+/*   ACCESSIBILITY MODES         */
+/* ============================= */
+
+html.a11y-high-contrast body {
+  filter: contrast(1.25) saturate(1.15);
+}
+
+html.a11y-larger-text {
+  font-size: 112.5%;
+}
+
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-underline-links a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.08em;
+}
