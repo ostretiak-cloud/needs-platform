@@ -236,6 +236,7 @@ export default function Header() {
             </Link>
 
             <nav className="hidden items-center justify-center gap-1 md:flex">
+              <NavLink href="/">Головна</NavLink>
               <NavLink href="/about">Про проєкт</NavLink>
               <NavLink href="/applications">Каталог заявок</NavLink>
             </nav>
@@ -299,6 +300,7 @@ export default function Header() {
 
           <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
             <div className="flex gap-2">
+              <NavLink href="/">Головна</NavLink>
               <NavLink href="/about">Про проєкт</NavLink>
               <NavLink href="/applications">Каталог</NavLink>
             </div>
