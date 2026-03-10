@@ -78,23 +78,6 @@ export default async function Home() {
             <HomeSearchBar />
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/applications"
-              prefetch
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-black hover:bg-white/90"
-            >
-              Перейти до каталогу →
-            </Link>
-
-            <Link
-              href="/about"
-              prefetch
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/10 px-5 text-sm font-semibold text-white hover:bg-white/15"
-            >
-              Про проєкт
-            </Link>
-          </div>
         </div>
       </section>
 
