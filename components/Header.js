@@ -4,19 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-function IconContrast({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path d="M12 3v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function IconAccessibility({ className = "" }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -76,8 +63,9 @@ function A11yMenuButton({ title, onClick, children, expanded = false }) {
 const A11Y_STORAGE_KEY = "needs-a11y-settings";
 const DEFAULT_SETTINGS = {
   highContrast: false,
-  largerText: false,
-  reduceMotion: false,
+  textScaleLevel: 0,
+  invertColors: false,
+  highBrightness: false,
   underlineLinks: false,
 };
 
@@ -86,9 +74,10 @@ function applyA11ySettings(settings) {
 
   const root = document.documentElement;
   root.classList.toggle("a11y-high-contrast", settings.highContrast);
-  root.classList.toggle("a11y-larger-text", settings.largerText);
-  root.classList.toggle("a11y-reduce-motion", settings.reduceMotion);
+  root.classList.toggle("a11y-invert-colors", settings.invertColors);
+  root.classList.toggle("a11y-high-brightness", settings.highBrightness);
   root.classList.toggle("a11y-underline-links", settings.underlineLinks);
+  root.dataset.a11yTextScale = String(settings.textScaleLevel ?? 0);
 }
 
 function A11yToggle({ id, label, checked, onChange }) {
@@ -107,6 +96,34 @@ function A11yToggle({ id, label, checked, onChange }) {
         <span className="pointer-events-none absolute left-0.5 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
       </span>
     </label>
+  );
+}
+
+function A11yTextScale({ value, onChange }) {
+  return (
+    <div className="rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
+      <div className="mb-2 text-white/90">Збільшення розміру тексту</div>
+      <div className="grid grid-cols-3 gap-2">
+        {[1, 2, 3].map((level) => {
+          const active = value === level;
+          return (
+            <button
+              key={level}
+              type="button"
+              onClick={() => onChange(active ? 0 : level)}
+              className={[
+                "rounded-lg px-2 py-1.5 text-xs font-semibold transition",
+                active
+                  ? "bg-[#FFD500] text-black"
+                  : "bg-white/10 text-white/85 hover:bg-white/20 hover:text-white",
+              ].join(" ")}
+            >
+              A{level}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -160,12 +177,14 @@ export default function Header() {
     setA11ySettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const setTextScaleLevel = (level) => {
+    setA11ySettings((prev) => ({ ...prev, textScaleLevel: level }));
+  };
+
   return (
     <header className="sticky top-0 z-50">
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#071427] via-[#071A22] to-[#071E12]" />
-        <div className="absolute inset-0 bg-[radial-gradient(1100px_320px_at_50%_-120px,rgba(40,90,255,0.18),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(900px_360px_at_55%_140%,rgba(0,170,90,0.16),transparent_55%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950 to-black" />
         <div className="absolute inset-0 bg-white/[0.06] backdrop-blur-3xl" />
         <div className="absolute inset-0 bg-black/25" />
 
@@ -227,10 +246,7 @@ export default function Header() {
                 onClick={() => setA11yMenuOpen((open) => !open)}
                 expanded={isA11yMenuOpen}
               >
-                <span className="relative inline-flex">
-                  <IconAccessibility className="h-5 w-5" />
-                  <IconContrast className="-ml-1 h-5 w-5 opacity-90" />
-                </span>
+                <IconAccessibility className="h-5 w-5" />
               </A11yMenuButton>
 
               {isA11yMenuOpen && (
@@ -244,16 +260,16 @@ export default function Header() {
                       onChange={() => toggleSetting("highContrast")}
                     />
                     <A11yToggle
-                      id="largerText"
-                      label="Збільшений розмір тексту"
-                      checked={a11ySettings.largerText}
-                      onChange={() => toggleSetting("largerText")}
+                      id="invertColors"
+                      label="Інверсія"
+                      checked={a11ySettings.invertColors}
+                      onChange={() => toggleSetting("invertColors")}
                     />
                     <A11yToggle
-                      id="reduceMotion"
-                      label="Зменшення анімацій"
-                      checked={a11ySettings.reduceMotion}
-                      onChange={() => toggleSetting("reduceMotion")}
+                      id="highBrightness"
+                      label="Яскравість"
+                      checked={a11ySettings.highBrightness}
+                      onChange={() => toggleSetting("highBrightness")}
                     />
                     <A11yToggle
                       id="underlineLinks"
@@ -261,6 +277,7 @@ export default function Header() {
                       checked={a11ySettings.underlineLinks}
                       onChange={() => toggleSetting("underlineLinks")}
                     />
+                    <A11yTextScale value={a11ySettings.textScaleLevel} onChange={setTextScaleLevel} />
                   </div>
                 </div>
               )}
