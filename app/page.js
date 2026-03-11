@@ -134,6 +134,10 @@ export default async function Home() {
               const qs = new URLSearchParams();
               if (p.category) qs.set("category", p.category);
               qs.set("q", p.title);
+              const sampleId = p.sample?.id;
+              const href = sampleId
+                ? `/applications/${encodeURIComponent(String(sampleId))}`
+                : `/applications?${qs.toString()}`;
 
               return (
                 <div
@@ -148,7 +152,7 @@ export default async function Home() {
 
                   <div className="mt-4">
                     <Link
-                      href={`/applications?${qs.toString()}`}
+                      href={href}
                       prefetch
                       className="inline-flex h-10 items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-black hover:bg-white/90"
                     >
