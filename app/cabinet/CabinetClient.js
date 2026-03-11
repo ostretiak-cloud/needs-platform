@@ -302,7 +302,7 @@ export default function CabinetClient({ role = "community" }) {
       setImageMeta(null);
       await loadNeeds();
     } catch (error) {
-      setSubmitError(String(error?.message || error));
+      setSubmitError(String(error?.message || "Не вдалося подати заявку."));
     } finally {
       setSubmitting(false);
     }
@@ -321,7 +321,7 @@ export default function CabinetClient({ role = "community" }) {
       if (!res.ok) throw new Error(data?.error || "Не вдалося оновити статус");
       await loadNeeds();
     } catch (error) {
-      setSubmitError(String(error?.message || error));
+      setSubmitError(String(error?.message || "Не вдалося подати заявку."));
     } finally {
       setUpdatingNeed(false);
     }
