@@ -33,3 +33,24 @@ export async function fetchNeeds() {
   const arr = Array.isArray(raw) ? raw : (raw?.data ?? []);
   return arr.map(normalizeNeed);
 }
+
+export async function createNeed(payload) {
+  const base = process.env.SHEETS_API_URL || SHEETS_URL;
+
+  const res = await fetch(base, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({
+      action: "create",
+      ...payload,
+    }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?.error) {
+    throw new Error(data?.error || `Failed to create need: ${res.status}`);
+  }
+
+  return data;
+}
