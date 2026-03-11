@@ -10,6 +10,17 @@ const ROLE_OPTIONS = [
   { value: "donor", label: "Донор (закриває потребу)" },
 ];
 
+const INITIAL_FORM = {
+  lastName: "",
+  firstName: "",
+  position: "",
+  organization: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  role: "community",
+};
+
 function readUsers() {
   if (typeof window === "undefined") return [];
 
@@ -31,14 +42,13 @@ function saveUsers(users) {
 
 export default function AuthModal({ onClose, onAuthSuccess }) {
   const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({ email: "", password: "", role: "community" });
+  const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
 
   const title = useMemo(
     () => (mode === "login" ? "Вхід до електронного кабінету" : "Реєстрація в системі"),
     [mode],
   );
-
 
   useEffect(() => {
     function handleEscape(event) {
@@ -57,6 +67,12 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
     setError("");
   }
 
+  function handleModeToggle() {
+    setMode((prev) => (prev === "login" ? "register" : "login"));
+    setForm(INITIAL_FORM);
+    setError("");
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
 
@@ -71,13 +87,41 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
     const users = readUsers();
 
     if (mode === "register") {
+      if (
+        !form.lastName.trim() ||
+        !form.firstName.trim() ||
+        !form.position.trim() ||
+        !form.organization.trim()
+      ) {
+        setError("Заповніть усі обов'язкові поля.");
+        return;
+      }
+
+      if (password.length < 8) {
+        setError("Пароль має містити щонайменше 8 символів.");
+        return;
+      }
+
+      if (password !== form.confirmPassword) {
+        setError("Паролі не співпадають.");
+        return;
+      }
+
       const existing = users.find((user) => user.email === email);
       if (existing) {
         setError("Користувач із таким email вже існує.");
         return;
       }
 
-      const newUser = { email, password, role: form.role };
+      const newUser = {
+        lastName: form.lastName.trim(),
+        firstName: form.firstName.trim(),
+        position: form.position.trim(),
+        organization: form.organization.trim(),
+        email,
+        password,
+        role: form.role,
+      };
       saveUsers([...users, newUser]);
       onAuthSuccess(newUser);
       return;
@@ -94,9 +138,9 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/65 px-4 py-6 sm:items-center sm:py-8" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-[#07121d] p-6 shadow-2xl"
+        className="w-full max-w-md rounded-3xl border border-white/10 bg-[#07121d] p-6 shadow-2xl max-h-[92vh] overflow-y-auto"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-4">
@@ -110,9 +154,65 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {mode === "register" && (
+            <>
+              <label className="block text-sm text-white/80">
+                Прізвище
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
+                  name="lastName"
+                  type="text"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  placeholder="Вкажіть прізвище"
+                  required
+                />
+              </label>
+
+              <label className="block text-sm text-white/80">
+                Імʼя
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
+                  name="firstName"
+                  type="text"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  placeholder="Вкажіть імʼя"
+                  required
+                />
+              </label>
+
+              <label className="block text-sm text-white/80">
+                Посада
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
+                  name="position"
+                  type="text"
+                  value={form.position}
+                  onChange={handleChange}
+                  placeholder="Вкажіть посаду"
+                  required
+                />
+              </label>
+
+              <label className="block text-sm text-white/80">
+                Організація
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
+                  name="organization"
+                  type="text"
+                  value={form.organization}
+                  onChange={handleChange}
+                  placeholder="Вкажіть організацію"
+                  required
+                />
+              </label>
+            </>
+          )}
+
           <label className="block text-sm text-white/80">
-            Email
+            Електронна пошта
             <input
               className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
               name="email"
@@ -126,7 +226,7 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
           </label>
 
           <label className="block text-sm text-white/80">
-            Пароль
+            Пароль (мінімум 8 символів)
             <input
               className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
               name="password"
@@ -135,26 +235,44 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
               onChange={handleChange}
               placeholder="••••••••"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
+              minLength={8}
               required
             />
           </label>
 
           {mode === "register" && (
-            <label className="block text-sm text-white/80">
-              Роль
-              <select
-                className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-              >
-                {ROLE_OPTIONS.map((role) => (
-                  <option key={role.value} value={role.value} className="bg-slate-900 text-white">
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <>
+              <label className="block text-sm text-white/80">
+                Повторіть пароль
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
+                  name="confirmPassword"
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+              </label>
+
+              <label className="block text-sm text-white/80">
+                Роль
+                <select
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-[#FFD500]"
+                  name="role"
+                  value={form.role}
+                  onChange={handleChange}
+                >
+                  {ROLE_OPTIONS.map((role) => (
+                    <option key={role.value} value={role.value} className="bg-slate-900 text-white">
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
           )}
 
           {error && <p className="text-sm font-medium text-red-300">{error}</p>}
@@ -171,7 +289,7 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
           {mode === "login" ? "Ще не маєте акаунта?" : "Вже зареєстровані?"}{" "}
           <button
             type="button"
-            onClick={() => setMode((prev) => (prev === "login" ? "register" : "login"))}
+            onClick={handleModeToggle}
             className="font-semibold text-[#FFD500] hover:text-[#FFE166]"
           >
             {mode === "login" ? "Зареєструватися" : "Увійти"}
