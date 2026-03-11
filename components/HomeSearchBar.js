@@ -3,9 +3,21 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function HomeSearchBar() {
+const COPY = {
+  uk: {
+    placeholder: "Пошук по каталогу (назва, громада, категорія)…",
+    search: "Шукати",
+  },
+  en: {
+    placeholder: "Search in catalog (title, community, category)…",
+    search: "Search",
+  },
+};
+
+export default function HomeSearchBar({ language = "uk" }) {
   const router = useRouter();
   const [q, setQ] = useState("");
+  const copy = COPY[language] ?? COPY.uk;
 
   function go(e) {
     e?.preventDefault?.();
@@ -18,14 +30,14 @@ export default function HomeSearchBar() {
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Пошук по каталогу (назва, громада, категорія)…"
+        placeholder={copy.placeholder}
         className="h-11 flex-1 rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white placeholder:text-white/40 outline-none"
       />
       <button
         type="submit"
         className="h-11 rounded-xl bg-white px-4 text-sm font-semibold text-black hover:bg-white/90"
       >
-        Шукати
+        {copy.search}
       </button>
     </form>
   );

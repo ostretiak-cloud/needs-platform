@@ -1,8 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
+
+const COPY = {
+  uk: {
+    title: "Адмін-панель", subtitle: "Каталог потреб (Google Sheets → API)", refresh: "Оновити", loading: "Завантаження…",
+    error: "Помилка:", errorHint: "Перевір: чи повертає Apps Script JSON, і чи доступний URL.", records: "Записів:",
+    name: "Назва", community: "Громада", budget: "Бюджет", status: "Статус", hint: "Якщо колонки названі інакше — скажи як саме в Google Sheets, і я піджену мапінг.",
+  },
+  en: {
+    title: "Admin panel", subtitle: "Needs catalog (Google Sheets → API)", refresh: "Refresh", loading: "Loading…",
+    error: "Error:", errorHint: "Check whether Apps Script returns JSON and whether URL is accessible.", records: "Records:",
+    name: "Title", community: "Community", budget: "Budget", status: "Status", hint: "If your columns are named differently in Google Sheets, share them and I will adjust mapping.",
+  },
+};
 
 export default function AdminPage() {
+  const { language } = useLanguage();
+  const copy = COPY[language] ?? COPY.uk;
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
@@ -13,13 +29,8 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/needs", { cache: "no-store" });
       const data = await res.json();
-
       if (!res.ok) throw new Error(data?.error || "API error");
-
-      // Очікуємо, що твій Apps Script повертає масив об'єктів.
-      // Якщо формат інший — підлаштуємо.
-      const list = Array.isArray(data) ? data : data.items || data.data || [];
-      setItems(list);
+      setItems(Array.isArray(data) ? data : data.items || data.data || []);
     } catch (e) {
       setError(String(e.message || e));
     } finally {
@@ -27,71 +38,21 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   return (
-    <main className="min-h-screen bg-black text-white p-10">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold">Адмін-панель</h1>
-          <p className="text-white/70 mt-1">Каталог потреб (Google Sheets → API)</p>
-        </div>
-
-        <button
-          onClick={load}
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold hover:bg-emerald-500 transition"
-        >
-          Оновити
-        </button>
-      </div>
-
+    <main className="min-h-screen bg-black p-10 text-white">
+      <div className="flex flex-wrap items-center justify-between gap-4"><div><h1 className="text-3xl font-bold">{copy.title}</h1><p className="mt-1 text-white/70">{copy.subtitle}</p></div><button onClick={load} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold transition hover:bg-emerald-500">{copy.refresh}</button></div>
       <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-        {loading && <div className="text-white/70">Завантаження…</div>}
-        {error && (
-          <div className="text-red-300">
-            Помилка: {error}
-            <div className="text-white/60 mt-2 text-sm">
-              Перевір: чи повертає Apps Script JSON, і чи доступний URL.
-            </div>
-          </div>
-        )}
-
+        {loading && <div className="text-white/70">{copy.loading}</div>}
+        {error && <div className="text-red-300">{copy.error} {error}<div className="mt-2 text-sm text-white/60">{copy.errorHint}</div></div>}
         {!loading && !error && (
           <>
-            <div className="text-sm text-white/60 mb-3">
-              Записів: <span className="text-white font-semibold">{items.length}</span>
-            </div>
-
+            <div className="mb-3 text-sm text-white/60">{copy.records} <span className="font-semibold text-white">{items.length}</span></div>
             <div className="overflow-auto rounded-xl border border-white/10">
-              <table className="min-w-[900px] w-full text-sm">
-                <thead className="bg-white/5 text-white/70">
-                  <tr>
-                    <th className="text-left p-3">Назва</th>
-                    <th className="text-left p-3">Громада</th>
-                    <th className="text-left p-3">Бюджет</th>
-                    <th className="text-left p-3">Статус</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((row, idx) => (
-                    <tr key={idx} className="border-t border-white/10">
-                      <td className="p-3">{row.title ?? row["Назва"] ?? "-"}</td>
-                      <td className="p-3">{row.community ?? row["Громада"] ?? "-"}</td>
-                      <td className="p-3">{row.budget ?? row["Бюджет"] ?? "-"}</td>
-                      <td className="p-3">
-                        {row.status ?? row["Статус"] ?? "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <table className="min-w-[900px] w-full text-sm"><thead className="bg-white/5 text-white/70"><tr><th className="p-3 text-left">{copy.name}</th><th className="p-3 text-left">{copy.community}</th><th className="p-3 text-left">{copy.budget}</th><th className="p-3 text-left">{copy.status}</th></tr></thead><tbody>{items.map((row, idx) => <tr key={idx} className="border-t border-white/10"><td className="p-3">{row.title ?? row["Назва"] ?? "-"}</td><td className="p-3">{row.community ?? row["Громада"] ?? "-"}</td><td className="p-3">{row.budget ?? row["Бюджет"] ?? "-"}</td><td className="p-3">{row.status ?? row["Статус"] ?? "-"}</td></tr>)}</tbody></table>
             </div>
-
-            <div className="text-xs text-white/50 mt-3">
-              Якщо колонки названі інакше — скажи як саме в Google Sheets, і я піджену мапінг.
-            </div>
+            <div className="mt-3 text-xs text-white/50">{copy.hint}</div>
           </>
         )}
       </div>

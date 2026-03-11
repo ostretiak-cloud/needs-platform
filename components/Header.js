@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
+import { SUPPORTED_LANGUAGES } from "@/app/lib/language";
 
 function IconAccessibility({ className = "" }) {
   return (
@@ -69,9 +71,6 @@ const DEFAULT_SETTINGS = {
   underlineLinks: false,
 };
 
-
-const LANGUAGE_STORAGE_KEY = "needs-lang";
-const SUPPORTED_LANGUAGES = ["uk", "en"];
 
 const HEADER_COPY = {
   uk: {
@@ -185,14 +184,8 @@ export default function Header() {
       return DEFAULT_SETTINGS;
     }
   });
-  const [language, setLanguage] = useState(() => {
-    if (typeof window === "undefined") return "uk";
-
-    const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (SUPPORTED_LANGUAGES.includes(savedLanguage)) return savedLanguage;
-
-    return "uk";
-  });
+  const { language, setLanguage } = useLanguage();
+  const router = useRouter();
   const menuRef = useRef(null);
   const noiseBg =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E\")";
@@ -205,12 +198,6 @@ export default function Header() {
     }
   }, [a11ySettings]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
-  }, [language]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -308,7 +295,7 @@ export default function Header() {
                     <button
                       key={lang.toUpperCase()}
                       type="button"
-                      onClick={() => setLanguage(lang)}
+                      onClick={() => { setLanguage(lang); router.refresh(); }}
                       aria-pressed={active}
                       className={[
                         "inline-flex h-9 min-w-10 items-center justify-center rounded-full px-2 text-xs font-bold uppercase tracking-wide transition",
