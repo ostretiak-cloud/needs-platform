@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import AuthModal from "./AuthModal";
 
 function IconAccessibility({ className = "" }) {
   return (
@@ -127,8 +128,25 @@ function A11yTextScale({ value, onChange }) {
   );
 }
 
+const AUTH_STORAGE_KEY = "needs-auth-user";
+
 export default function Header() {
+  const router = useRouter();
   const [isA11yMenuOpen, setA11yMenuOpen] = useState(false);
+  const [isAuthModalOpen, setAuthModalOpen] = useState(false);
+  const [authUser, setAuthUser] = useState(() => {
+    if (typeof window === "undefined") return null;
+
+    const savedUser = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!savedUser) return null;
+
+    try {
+      return JSON.parse(savedUser);
+    } catch {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      return null;
+    }
+  });
   const [a11ySettings, setA11ySettings] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
 
@@ -145,6 +163,7 @@ export default function Header() {
   const menuRef = useRef(null);
   const noiseBg =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E\")";
+
 
   useEffect(() => {
     applyA11ySettings(a11ySettings);
@@ -179,6 +198,23 @@ export default function Header() {
 
   const setTextScaleLevel = (level) => {
     setA11ySettings((prev) => ({ ...prev, textScaleLevel: level }));
+  };
+
+  const handleAuthSuccess = (user) => {
+    setAuthUser(user);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    }
+    setAuthModalOpen(false);
+    router.push(`/cabinet?role=${encodeURIComponent(user.role)}`);
+  };
+
+  const handleLogout = () => {
+    setAuthUser(null);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+    router.push("/");
   };
 
   return (
@@ -283,18 +319,42 @@ export default function Header() {
                 </div>
               )}
 
-              <Link
-                href="/admin"
-                prefetch
-                className={[
-                  "ml-1 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-extrabold transition",
-                  "bg-[#FFD500] text-black hover:bg-[#FFE166]",
-                  "shadow-[0_16px_40px_-24px_rgba(255,213,0,0.9)]",
-                  "focus:outline-none focus:ring-2 focus:ring-[#FFD500]/40",
-                ].join(" ")}
-              >
-                Вхід
-              </Link>
+              {authUser ? (
+                <div className="ml-1 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/cabinet?role=${encodeURIComponent(authUser.role)}`)}
+                    className={[
+                      "inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-extrabold transition",
+                      "bg-[#FFD500] text-black hover:bg-[#FFE166]",
+                      "shadow-[0_16px_40px_-24px_rgba(255,213,0,0.9)]",
+                      "focus:outline-none focus:ring-2 focus:ring-[#FFD500]/40",
+                    ].join(" ")}
+                  >
+                    Кабінет
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex h-11 items-center justify-center rounded-full bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/20"
+                  >
+                    Вийти
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAuthModalOpen(true)}
+                  className={[
+                    "ml-1 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-extrabold transition",
+                    "bg-[#FFD500] text-black hover:bg-[#FFE166]",
+                    "shadow-[0_16px_40px_-24px_rgba(255,213,0,0.9)]",
+                    "focus:outline-none focus:ring-2 focus:ring-[#FFD500]/40",
+                  ].join(" ")}
+                >
+                  Вхід
+                </button>
+              )}
             </div>
           </div>
 
@@ -307,6 +367,12 @@ export default function Header() {
           </div>
         </div>
       </div>
+      {isAuthModalOpen && (
+        <AuthModal
+          onClose={() => setAuthModalOpen(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      )}
     </header>
   );
 }
