@@ -134,25 +134,32 @@ export default async function Home() {
               const qs = new URLSearchParams();
               if (p.category) qs.set("category", p.category);
               qs.set("q", p.title);
+              const sampleId = p.sample?.id;
+              const href = sampleId
+                ? `/applications/${encodeURIComponent(String(sampleId))}`
+                : `/applications?${qs.toString()}`;
 
               return (
-                <Link
+                <div
                   key={`${p.category}||${p.title}`}
-                  href={`/applications?${qs.toString()}`}
-                  prefetch
-                  className="group rounded-2xl border border-white/10 bg-black/20 p-4 hover:bg-black/30"
+                  className="rounded-2xl border border-white/10 bg-black/20 p-4 hover:bg-black/30"
                 >
                   <div className="text-xs text-white/60">{p.category || "—"}</div>
-                  <div className="mt-1 text-lg font-semibold text-white group-hover:text-white/90">
-                    {p.title}
-                  </div>
+                  <div className="mt-1 text-lg font-semibold text-white">{p.title}</div>
                   <div className="mt-2 text-sm text-white/70">
                     🔥 Зустрічається: <span className="font-semibold text-white">{p.count}</span> разів
                   </div>
-                  <div className="mt-4 text-sm font-semibold text-white/80 group-hover:text-white">
-                    Перейти в каталог з фільтром →
+
+                  <div className="mt-4">
+                    <Link
+                      href={href}
+                      prefetch
+                      className="inline-flex h-10 items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-black hover:bg-white/90"
+                    >
+                      Відкрити
+                    </Link>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
