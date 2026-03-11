@@ -1,8 +1,4 @@
-"use client";
-
-import { useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 const roleContent = {
   community: {
@@ -43,11 +39,9 @@ function RoleCard({ title, text }) {
   );
 }
 
-export default function CabinetPage() {
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "community";
-
-  const content = useMemo(() => roleContent[role] || roleContent.community, [role]);
+export default function CabinetPage({ searchParams }) {
+  const role = searchParams?.role || "community";
+  const content = roleContent[role] || roleContent.community;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900 px-4 py-10">
