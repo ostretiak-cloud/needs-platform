@@ -39,8 +39,9 @@ function RoleCard({ title, text }) {
   );
 }
 
-export default function CabinetPage({ searchParams }) {
-  const role = searchParams?.role || "community";
+export default async function CabinetPage({ searchParams }) {
+  const params = await searchParams;
+  const role = params?.role || "community";
   const content = roleContent[role] || roleContent.community;
 
   return (
