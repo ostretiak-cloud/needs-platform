@@ -1,9 +1,10 @@
+import { SHEETS_URL } from "@/app/lib/needs";
+
 export async function PATCH(req, context) {
   try {
-    const base = process.env.SHEETS_API_URL;
+    const base = process.env.SHEETS_API_URL || SHEETS_URL;
     const key = process.env.ADMIN_API_KEY;
 
-    if (!base) return Response.json({ error: "SHEETS_API_URL is missing" }, { status: 500 });
     if (!key) return Response.json({ error: "ADMIN_API_KEY is missing" }, { status: 500 });
 
     const params = await context?.params;

@@ -50,6 +50,7 @@ function statusLabel(status) {
   if (s === "draft") return "Чернетка";
   if (s === "verification") return "На верифікації";
   if (s === "published") return "Опубліковано";
+  if (s === "submitted") return "Подано";
   if (s === "rejected") return "Повернено";
   return status || "—";
 }
@@ -66,7 +67,7 @@ function tryParseImageMeta(v) {
 
 function isVerificationQueue(status) {
   const s = String(status ?? "").trim().toLowerCase();
-  return s === "draft" || s === "verification";
+  return s === "draft" || s === "verification" || s === "submitted";
 }
 
 function OvaNeedCard({ item, onStatusChange, isUpdating }) {
@@ -153,7 +154,7 @@ export default function CabinetClient({ role = "community" }) {
   async function loadNeeds() {
     setLoadingNeeds(true);
     try {
-      const res = await fetch("/api/needs", { cache: "no-store" });
+      const res = await fetch("/api/needs?scope=all", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Помилка завантаження заявок");
       setNeeds(Array.isArray(data) ? data : []);
@@ -372,7 +373,7 @@ export default function CabinetClient({ role = "community" }) {
         {canVerifyNeeds && (
           <section className="mt-7 rounded-2xl border border-white/10 bg-black/25 p-5">
             <h2 className="text-xl font-semibold text-white">Черга на верифікацію</h2>
-            <p className="mt-1 text-sm text-white/70">Потреби зі статусом чернетка/верифікація</p>
+            <p className="mt-1 text-sm text-white/70">Потреби зі статусом подано/чернетка/верифікація</p>
 
             <div className="mt-4 space-y-3">
               {isLoadingNeeds && <div className="text-sm text-white/70">Завантаження…</div>}
