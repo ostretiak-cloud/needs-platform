@@ -433,6 +433,10 @@ export default function CabinetClient({ role = "community" }) {
                     <div className="mt-2 text-xs text-emerald-300 break-all">AI URL: {form.image_url}</div>
                   )}
 
+                  {imageMeta?.fileName && form.image_source === "community" && (
+                    <div className="mt-2 text-xs text-emerald-300">Файл обрано та перевірено ✔</div>
+                  )}
+
                   {imageMeta && (
                     <div className="mt-2 text-xs text-white/70">
                       {imageMeta.fileName} • {imageMeta.width}x{imageMeta.height}px • {Math.round(imageMeta.sizeBytes / 1024)}KB

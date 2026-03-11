@@ -3,11 +3,51 @@
 export const SHEETS_URL =
   "https://script.google.com/macros/s/AKfycbypMB1wcSzRSzNSxOZN1Pkl4HCgGzLCqh3R6LNAqKgmmiArr-cUABZTvcka5gjhJAejTg/exec";
 
-function buildAdminUrl() {
+function appendQuery(url, params) {
+  const u = new URL(url);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && String(v) !== "") {
+      u.searchParams.set(k, String(v));
+    }
+  });
+  return u.toString();
+}
+
+function buildCreateTargets() {
   const base = process.env.SHEETS_API_URL;
   const key = process.env.ADMIN_API_KEY;
-  if (!base || !key) return null;
-  return `${base}?mode=admin&key=${encodeURIComponent(key)}`;
+
+  const targets = [];
+
+  if (base && key) {
+    targets.push({
+      url: appendQuery(base, { mode: "admin", key }),
+      bodyExtra: {},
+      name: "admin-configured",
+    });
+  }
+
+  if (base) {
+    targets.push({
+      url: appendQuery(base, { mode: "community" }),
+      bodyExtra: { mode: "community" },
+      name: "community-via-sheets-api-url",
+    });
+  }
+
+  targets.push({
+    url: appendQuery(SHEETS_URL, { mode: "community" }),
+    bodyExtra: { mode: "community" },
+    name: "community-via-default-url",
+  });
+
+  targets.push({
+    url: SHEETS_URL,
+    bodyExtra: { mode: "community" },
+    name: "default-url-no-query",
+  });
+
+  return targets;
 }
 
 // приводимо назви полів до єдиного формату
@@ -45,25 +85,33 @@ export async function fetchNeeds() {
 }
 
 export async function createNeed(payload) {
-  const adminUrl = buildAdminUrl();
-  if (!adminUrl) {
-    throw new Error("Server misconfigured: SHEETS_API_URL and ADMIN_API_KEY are required for create");
+  const targets = buildCreateTargets();
+  const errors = [];
+
+  for (const target of targets) {
+    try {
+      const res = await fetch(target.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          action: "create",
+          ...target.bodyExtra,
+          ...payload,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.error) {
+        errors.push(`${target.name}: ${data?.error || `HTTP ${res.status}`}`);
+        continue;
+      }
+
+      return data;
+    } catch (e) {
+      errors.push(`${target.name}: ${String(e)}`);
+    }
   }
 
-  const res = await fetch(adminUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify({
-      action: "create",
-      ...payload,
-    }),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data?.error) {
-    throw new Error(data?.error || `Failed to create need: ${res.status}`);
-  }
-
-  return data;
+  throw new Error(`Create failed on all routes. ${errors.join(" | ")}`);
 }
