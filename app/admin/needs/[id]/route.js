@@ -1,4 +1,4 @@
-export async function PATCH(req, { params }) {
+export async function PATCH(req, context) {
   try {
     const base = process.env.SHEETS_API_URL;
     const key = process.env.ADMIN_API_KEY;
@@ -6,6 +6,7 @@ export async function PATCH(req, { params }) {
     if (!base) return Response.json({ error: "SHEETS_API_URL is missing" }, { status: 500 });
     if (!key) return Response.json({ error: "ADMIN_API_KEY is missing" }, { status: 500 });
 
+    const params = await context?.params;
     const id = params?.id;
     if (!id) return Response.json({ error: "Missing id in route" }, { status: 400 });
 
