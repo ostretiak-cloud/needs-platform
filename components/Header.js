@@ -69,6 +69,49 @@ const DEFAULT_SETTINGS = {
   underlineLinks: false,
 };
 
+
+const LANGUAGE_STORAGE_KEY = "needs-lang";
+const SUPPORTED_LANGUAGES = ["uk", "en"];
+
+const HEADER_COPY = {
+  uk: {
+    coatAria: "Герб України",
+    titleLineOne: "Харківська обласна",
+    titleLineTwo: "військова адміністрація",
+    navHome: "Головна",
+    navAbout: "Про проєкт",
+    navApplications: "Каталог заявок",
+    navCatalogShort: "Каталог",
+    accessibilityTitle: "Контраст та доступність",
+    accessibilitySettings: "Налаштування доступності",
+    highContrast: "Високий контраст",
+    invertColors: "Інверсія",
+    highBrightness: "Яскравість",
+    underlineLinks: "Підкреслювати посилання",
+    textScale: "Збільшення розміру тексту",
+    login: "Вхід",
+    languageSwitcher: "Перемикач мови",
+  },
+  en: {
+    coatAria: "Coat of arms of Ukraine",
+    titleLineOne: "Kharkiv Regional",
+    titleLineTwo: "Military Administration",
+    navHome: "Home",
+    navAbout: "About",
+    navApplications: "Applications catalog",
+    navCatalogShort: "Catalog",
+    accessibilityTitle: "Contrast and accessibility",
+    accessibilitySettings: "Accessibility settings",
+    highContrast: "High contrast",
+    invertColors: "Invert colors",
+    highBrightness: "Brightness",
+    underlineLinks: "Underline links",
+    textScale: "Increase text size",
+    login: "Sign in",
+    languageSwitcher: "Language switcher",
+  },
+};
+
 function applyA11ySettings(settings) {
   if (typeof document === "undefined") return;
 
@@ -99,10 +142,10 @@ function A11yToggle({ id, label, checked, onChange }) {
   );
 }
 
-function A11yTextScale({ value, onChange }) {
+function A11yTextScale({ value, onChange, label }) {
   return (
     <div className="rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
-      <div className="mb-2 text-white/90">Збільшення розміру тексту</div>
+      <div className="mb-2 text-white/90">{label}</div>
       <div className="grid grid-cols-3 gap-2">
         {[1, 2, 3].map((level) => {
           const active = value === level;
@@ -142,9 +185,18 @@ export default function Header() {
       return DEFAULT_SETTINGS;
     }
   });
+  const [language, setLanguage] = useState(() => {
+    if (typeof window === "undefined") return "uk";
+
+    const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (SUPPORTED_LANGUAGES.includes(savedLanguage)) return savedLanguage;
+
+    return "uk";
+  });
   const menuRef = useRef(null);
   const noiseBg =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E\")";
+  const copy = HEADER_COPY[language] ?? HEADER_COPY.uk;
 
   useEffect(() => {
     applyA11ySettings(a11ySettings);
@@ -152,6 +204,13 @@ export default function Header() {
       window.localStorage.setItem(A11Y_STORAGE_KEY, JSON.stringify(a11ySettings));
     }
   }, [a11ySettings]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    document.documentElement.lang = language;
+  }, [language]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -224,26 +283,49 @@ export default function Header() {
                     filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.55))",
                   }}
                 />
-                <span className="sr-only">Герб України</span>
+                <span className="sr-only">{copy.coatAria}</span>
               </div>
 
               <div className="leading-tight">
-                <div className="text-[16px] font-semibold text-white sm:text-[17px]">Харківська обласна</div>
+                <div className="text-[16px] font-semibold text-white sm:text-[17px]">{copy.titleLineOne}</div>
                 <div className="text-[16px] font-semibold text-white sm:text-[17px]">
-                  військова адміністрація
+                  {copy.titleLineTwo}
                 </div>
               </div>
             </Link>
 
             <nav className="hidden items-center justify-center gap-1 md:flex">
-              <NavLink href="/">Головна</NavLink>
-              <NavLink href="/about">Про проєкт</NavLink>
-              <NavLink href="/applications">Каталог заявок</NavLink>
+              <NavLink href="/">{copy.navHome}</NavLink>
+              <NavLink href="/about">{copy.navAbout}</NavLink>
+              <NavLink href="/applications">{copy.navApplications}</NavLink>
             </nav>
 
             <div className="relative flex items-center gap-2" ref={menuRef}>
+              <div className="inline-flex h-11 items-center rounded-full bg-white/[0.07] p-1 ring-1 ring-white/10" role="group" aria-label={copy.languageSwitcher}>
+                {SUPPORTED_LANGUAGES.map((lang) => {
+                  const active = language === lang;
+                  return (
+                    <button
+                      key={lang.toUpperCase()}
+                      type="button"
+                      onClick={() => setLanguage(lang)}
+                      aria-pressed={active}
+                      className={[
+                        "inline-flex h-9 min-w-10 items-center justify-center rounded-full px-2 text-xs font-bold uppercase tracking-wide transition",
+                        active
+                          ? "bg-[#FFD500] text-black"
+                          : "text-white/85 hover:bg-white/10 hover:text-white",
+                        "focus:outline-none focus:ring-2 focus:ring-white/25",
+                      ].join(" ")}
+                    >
+                      {lang.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+
               <A11yMenuButton
-                title="Контраст та доступність"
+                title={copy.accessibilityTitle}
                 onClick={() => setA11yMenuOpen((open) => !open)}
                 expanded={isA11yMenuOpen}
               >
@@ -252,33 +334,33 @@ export default function Header() {
 
               {isA11yMenuOpen && (
                 <div className="absolute right-0 top-14 z-50 w-72 rounded-2xl border border-white/10 bg-[#081421]/95 p-3 shadow-2xl backdrop-blur-md">
-                  <div className="mb-2 px-1 text-sm font-semibold text-white">Налаштування доступності</div>
+                  <div className="mb-2 px-1 text-sm font-semibold text-white">{copy.accessibilitySettings}</div>
                   <div className="space-y-2">
                     <A11yToggle
                       id="highContrast"
-                      label="Високий контраст"
+                      label={copy.highContrast}
                       checked={a11ySettings.highContrast}
                       onChange={() => toggleSetting("highContrast")}
                     />
                     <A11yToggle
                       id="invertColors"
-                      label="Інверсія"
+                      label={copy.invertColors}
                       checked={a11ySettings.invertColors}
                       onChange={() => toggleSetting("invertColors")}
                     />
                     <A11yToggle
                       id="highBrightness"
-                      label="Яскравість"
+                      label={copy.highBrightness}
                       checked={a11ySettings.highBrightness}
                       onChange={() => toggleSetting("highBrightness")}
                     />
                     <A11yToggle
                       id="underlineLinks"
-                      label="Підкреслювати посилання"
+                      label={copy.underlineLinks}
                       checked={a11ySettings.underlineLinks}
                       onChange={() => toggleSetting("underlineLinks")}
                     />
-                    <A11yTextScale value={a11ySettings.textScaleLevel} onChange={setTextScaleLevel} />
+                    <A11yTextScale value={a11ySettings.textScaleLevel} onChange={setTextScaleLevel} label={copy.textScale} />
                   </div>
                 </div>
               )}
@@ -293,16 +375,16 @@ export default function Header() {
                   "focus:outline-none focus:ring-2 focus:ring-[#FFD500]/40",
                 ].join(" ")}
               >
-                Вхід
+                {copy.login}
               </Link>
             </div>
           </div>
 
           <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
             <div className="flex gap-2">
-              <NavLink href="/">Головна</NavLink>
-              <NavLink href="/about">Про проєкт</NavLink>
-              <NavLink href="/applications">Каталог</NavLink>
+              <NavLink href="/">{copy.navHome}</NavLink>
+              <NavLink href="/about">{copy.navAbout}</NavLink>
+              <NavLink href="/applications">{copy.navCatalogShort}</NavLink>
             </div>
           </div>
         </div>
