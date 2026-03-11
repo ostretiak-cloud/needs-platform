@@ -1,5 +1,5 @@
 // app/api/needs/route.js
-import { createNeed, fetchNeeds } from "@/app/lib/needs";
+import { SHEETS_URL, createNeed, fetchNeeds, normalizeNeed } from "@/app/lib/needs";
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -8,9 +8,32 @@ function todayISODate() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export async function GET() {
+async function fetchAllNeedsForCabinets() {
+  const base = process.env.SHEETS_API_URL || SHEETS_URL;
+  const key = process.env.ADMIN_API_KEY;
+
+  if (!key) {
+    throw new Error("ADMIN_API_KEY не налаштовано");
+  }
+
+  const url = `${base}?mode=admin&key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, { cache: "no-store" });
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok || data?.error) {
+    throw new Error(data?.error || "Admin fetch failed");
+  }
+
+  const list = Array.isArray(data) ? data : data?.items || data?.data || [];
+  return list.map(normalizeNeed);
+}
+
+export async function GET(req) {
   try {
-    const needs = await fetchNeeds();
+    const { searchParams } = new URL(req.url);
+    const scope = String(searchParams.get("scope") || "public").toLowerCase();
+
+    const needs = scope === "all" ? await fetchAllNeedsForCabinets() : await fetchNeeds();
     return Response.json(needs, { status: 200 });
   } catch (e) {
     return Response.json({ error: "Не вдалося завантажити список потреб." }, { status: 500 });

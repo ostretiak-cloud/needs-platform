@@ -11,7 +11,7 @@ export default function AdminPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/needs", { cache: "no-store" });
+      const res = await fetch("/api/needs?scope=all", { cache: "no-store" });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data?.error || "API error");
