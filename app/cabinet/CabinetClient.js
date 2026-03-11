@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 const AUTH_STORAGE_KEY = "needs-auth-user";
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MIN_IMAGE_WIDTH = 800;
+const MIN_IMAGE_HEIGHT = 600;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const CATEGORY_OPTIONS = [
   "Енергетика",
@@ -37,6 +41,8 @@ const initialForm = {
   budget_uah: "",
   priority: "3",
   description: "",
+  image_url: "",
+  image_source: "community",
 };
 
 function formatMoney(value) {
@@ -54,6 +60,84 @@ function statusLabel(status) {
   return status || "—";
 }
 
+function tryParseImageMeta(v) {
+  if (!v) return null;
+  if (typeof v === "object") return v;
+  try {
+    return JSON.parse(String(v));
+  } catch {
+    return null;
+  }
+}
+
+function isVerificationQueue(status) {
+  const s = String(status ?? "").trim().toLowerCase();
+  return s === "draft" || s === "verification";
+}
+
+async function getImageDimensions(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const dimensions = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = reject;
+      img.src = url;
+    });
+    return dimensions;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function OvaNeedCard({ item, onStatusChange, isUpdating }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-white">{item.title || "Без назви"}</h3>
+          <div className="mt-1 text-xs text-white/60">{item.id || "—"}</div>
+        </div>
+        <div className="text-xs text-white/70">{statusLabel(item.status)}</div>
+      </div>
+
+      <div className="mt-3 grid gap-1 text-sm text-white/75">
+        <div>Громада: {item.community || "—"}</div>
+        <div>Категорія: {item.category || "—"}</div>
+        <div>Бюджет: {formatMoney(item.budget_uah ?? item.budget)}</div>
+        <div>Контакт: {item.contact_name || "—"}</div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => onStatusChange(item.id, "verification")}
+          className="h-9 rounded-lg bg-white/10 px-3 text-xs text-white hover:bg-white/20 disabled:opacity-60"
+        >
+          На верифікацію
+        </button>
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => onStatusChange(item.id, "published")}
+          className="h-9 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-60"
+        >
+          Підтвердити
+        </button>
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={() => onStatusChange(item.id, "rejected")}
+          className="h-9 rounded-lg bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-60"
+        >
+          Повернути
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CabinetClient({ role = "community" }) {
   const content = roleContent[role] || roleContent.community;
   const [authUser, setAuthUser] = useState(null);
@@ -66,6 +150,9 @@ export default function CabinetClient({ role = "community" }) {
 
   const [needs, setNeeds] = useState([]);
   const [isLoadingNeeds, setLoadingNeeds] = useState(false);
+  const [imageMeta, setImageMeta] = useState(null);
+  const [imageError, setImageError] = useState("");
+  const [isUpdatingNeed, setUpdatingNeed] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -86,17 +173,13 @@ export default function CabinetClient({ role = "community" }) {
     }
   }, []);
 
-  async function loadMyNeeds(email) {
+  async function loadNeeds() {
     setLoadingNeeds(true);
     try {
       const res = await fetch("/api/needs", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Помилка завантаження заявок");
-
-      const filtered = (Array.isArray(data) ? data : []).filter(
-        (item) => String(item?.contact_email ?? "").trim().toLowerCase() === email,
-      );
-      setNeeds(filtered);
+      setNeeds(Array.isArray(data) ? data : []);
     } catch {
       setNeeds([]);
     } finally {
@@ -105,15 +188,88 @@ export default function CabinetClient({ role = "community" }) {
   }
 
   useEffect(() => {
-    if (role !== "community") return;
-    const email = String(authUser?.email ?? "").trim().toLowerCase();
-    if (!email) return;
-    loadMyNeeds(email);
-  }, [authUser, role]);
+    if (!["community", "ova"].includes(role)) return;
+    loadNeeds();
+  }, [role]);
 
   const canCreateNeed = useMemo(() => {
     return role === "community" && authUser?.role === "community";
   }, [authUser, role]);
+
+  const canVerifyNeeds = useMemo(() => {
+    return role === "ova" && authUser?.role === "ova";
+  }, [authUser, role]);
+
+  const myNeeds = useMemo(() => {
+    const email = String(authUser?.email ?? "").trim().toLowerCase();
+    if (!email) return [];
+    return needs.filter((item) => String(item?.contact_email ?? "").trim().toLowerCase() === email);
+  }, [authUser, needs]);
+
+  const ovaQueue = useMemo(() => {
+    return needs.filter((item) => isVerificationQueue(item.status));
+  }, [needs]);
+
+  async function onPickImage(event) {
+    const file = event.target.files?.[0];
+    setImageError("");
+    setImageMeta(null);
+    setForm((prev) => ({ ...prev, image_url: "", image_source: "community" }));
+
+    if (!file) return;
+
+    const mimeType = String(file.type || "").toLowerCase();
+    if (!ALLOWED_IMAGE_TYPES.includes(mimeType)) {
+      setImageError("Дозволені формати: JPG, PNG, WEBP.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setImageError("Максимальний розмір файлу: 5MB.");
+      return;
+    }
+
+    try {
+      const { width, height } = await getImageDimensions(file);
+      if (width < MIN_IMAGE_WIDTH || height < MIN_IMAGE_HEIGHT) {
+        setImageError(`Мінімальний розмір: ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT}px.`);
+        return;
+      }
+
+      const nextMeta = {
+        fileName: file.name,
+        mimeType,
+        sizeBytes: file.size,
+        width,
+        height,
+      };
+      setImageMeta(nextMeta);
+      setForm((prev) => ({ ...prev, image_source: "community" }));
+    } catch {
+      setImageError("Не вдалося прочитати зображення.");
+    }
+  }
+
+  function onUseAiSuggestion() {
+    // демо: AI-помічник пропонує релевантне зображення з гарантованим форматом
+    const suggestedUrl =
+      "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1600&q=80";
+
+    setForm((prev) => ({
+      ...prev,
+      image_url: suggestedUrl,
+      image_source: "ai_assistant",
+    }));
+
+    setImageMeta({
+      fileName: "ai-suggested-energy.jpg",
+      mimeType: "image/jpeg",
+      sizeBytes: 340000,
+      width: 1600,
+      height: 900,
+      providedBy: "ai_assistant",
+    });
+    setImageError("");
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -134,19 +290,40 @@ export default function CabinetClient({ role = "community" }) {
           community: authUser.organization,
           contact_name: `${authUser.lastName} ${authUser.firstName}`.trim(),
           contact_email: authUser.email,
+          image_meta: imageMeta,
         }),
       });
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Не вдалося створити потребу");
 
-      setSubmitOk("Заявку створено та передано у систему.");
+      setSubmitOk("Заявку створено та передано на верифікацію ОВА.");
       setForm(initialForm);
-      await loadMyNeeds(String(authUser.email).trim().toLowerCase());
+      setImageMeta(null);
+      await loadNeeds();
     } catch (error) {
       setSubmitError(String(error?.message || error));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function onOvaStatusChange(id, status) {
+    if (!id) return;
+    setUpdatingNeed(true);
+    try {
+      const res = await fetch(`/admin/needs/${encodeURIComponent(String(id))}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Не вдалося оновити статус");
+      await loadNeeds();
+    } catch (error) {
+      setSubmitError(String(error?.message || error));
+    } finally {
+      setUpdatingNeed(false);
     }
   }
 
@@ -174,7 +351,7 @@ export default function CabinetClient({ role = "community" }) {
           </Link>
         </div>
 
-        {canCreateNeed ? (
+        {canCreateNeed && (
           <div className="mt-7 grid gap-5 lg:grid-cols-2">
             <form onSubmit={onSubmit} className="rounded-2xl border border-white/10 bg-black/25 p-5">
               <h2 className="text-xl font-semibold text-white">Створити нову потребу</h2>
@@ -231,6 +408,39 @@ export default function CabinetClient({ role = "community" }) {
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   required
                 />
+
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                  <div className="mb-2 text-sm font-semibold text-white">Зображення (громада або AI-помічник)</div>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={onPickImage}
+                    className="block w-full text-sm text-white/80"
+                  />
+                  <div className="mt-2 text-xs text-white/60">
+                    Формат: JPG/PNG/WEBP • до 5MB • мінімум {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT}px
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={onUseAiSuggestion}
+                    className="mt-3 h-9 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-500"
+                  >
+                    AI-помічник: підібрати зображення
+                  </button>
+
+                  {form.image_url && (
+                    <div className="mt-2 text-xs text-emerald-300 break-all">AI URL: {form.image_url}</div>
+                  )}
+
+                  {imageMeta && (
+                    <div className="mt-2 text-xs text-white/70">
+                      {imageMeta.fileName} • {imageMeta.width}x{imageMeta.height}px • {Math.round(imageMeta.sizeBytes / 1024)}KB
+                    </div>
+                  )}
+
+                  {imageError && <div className="mt-2 text-xs text-red-300">{imageError}</div>}
+                </div>
               </div>
 
               {submitError && <div className="mt-3 text-sm text-red-300">{submitError}</div>}
@@ -251,23 +461,56 @@ export default function CabinetClient({ role = "community" }) {
 
               <div className="mt-4 space-y-3">
                 {isLoadingNeeds && <div className="text-sm text-white/70">Завантаження…</div>}
-                {!isLoadingNeeds && needs.length === 0 && (
+                {!isLoadingNeeds && myNeeds.length === 0 && (
                   <div className="text-sm text-white/60">Ще немає жодної заявки.</div>
                 )}
 
-                {needs.map((item) => (
-                  <div key={`${item.id}-${item.updated_at}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="text-sm font-semibold text-white">{item.title || "Без назви"}</div>
-                    <div className="mt-1 text-xs text-white/60">
-                      {item.category || "—"} · {formatMoney(item.budget_uah ?? item.budget)}
+                {myNeeds.map((item) => {
+                  const meta = tryParseImageMeta(item.image_meta);
+                  return (
+                    <div key={`${item.id}-${item.updated_at}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-sm font-semibold text-white">{item.title || "Без назви"}</div>
+                      <div className="mt-1 text-xs text-white/60">
+                        {item.category || "—"} · {formatMoney(item.budget_uah ?? item.budget)}
+                      </div>
+                      <div className="mt-1 text-xs text-white/60">Статус: {statusLabel(item.status)}</div>
+                      {(item.image_url || meta) && (
+                        <div className="mt-1 text-xs text-white/60">
+                          Зображення: {item.image_source === "ai_assistant" ? "AI-помічник" : "Громада"}
+                          {meta?.width && meta?.height ? ` • ${meta.width}x${meta.height}px` : ""}
+                        </div>
+                      )}
                     </div>
-                    <div className="mt-1 text-xs text-white/60">Статус: {statusLabel(item.status)}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           </div>
-        ) : (
+        )}
+
+        {canVerifyNeeds && (
+          <section className="mt-7 rounded-2xl border border-white/10 bg-black/25 p-5">
+            <h2 className="text-xl font-semibold text-white">Черга на верифікацію</h2>
+            <p className="mt-1 text-sm text-white/70">Потреби зі статусом чернетка/верифікація</p>
+
+            <div className="mt-4 space-y-3">
+              {isLoadingNeeds && <div className="text-sm text-white/70">Завантаження…</div>}
+              {!isLoadingNeeds && ovaQueue.length === 0 && (
+                <div className="text-sm text-white/60">У черзі немає заявок.</div>
+              )}
+              {ovaQueue.map((item) => (
+                <OvaNeedCard
+                  key={`${item.id}-${item.updated_at}`}
+                  item={item}
+                  onStatusChange={onOvaStatusChange}
+                  isUpdating={isUpdatingNeed}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {!canCreateNeed && !canVerifyNeeds && (
           <div className="mt-7 rounded-2xl border border-white/10 bg-black/25 p-6 text-white/85">
             {role !== authUser?.role
               ? "Доступ обмежено: роль у профілі не відповідає обраному кабінету."
